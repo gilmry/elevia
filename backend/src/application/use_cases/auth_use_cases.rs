@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::application::dto::{ChangePasswordRequest, Claims, LoginRequest, LoginResponse};
 use crate::application::ports::{RepoError, UserRepository};
+use crate::domain::entities::User;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
@@ -51,12 +52,22 @@ impl AuthUseCases {
             return Err(AuthError::InvalidCredentials);
         }
 
+        let token = self.mint_token(&user, Duration::hours(TOKEN_LIFETIME_HOURS))?;
+        Ok(LoginResponse { token })
+    }
+
+    /// Signs a JWT for `user` valid for `ttl`. Shared by the direct
+    /// email/password login (12h) and the OAuth token endpoint (1h access
+    /// tokens, minted from a use case that never sees a password) - both
+    /// issue exactly the same claim shape, so `verify_token` and every REST
+    /// handler treat the two paths identically.
+    pub fn mint_token(&self, user: &User, ttl: Duration) -> Result<String, AuthError> {
         let role = match user.role {
             crate::domain::entities::Role::Admin => "admin",
             crate::domain::entities::Role::Exploitation => "exploitation",
         };
 
-        let exp = (Utc::now() + Duration::hours(TOKEN_LIFETIME_HOURS)).timestamp() as usize;
+        let exp = (Utc::now() + ttl).timestamp() as usize;
         let claims = Claims {
             sub: user.id,
             email: user.email.clone(),
@@ -65,14 +76,12 @@ impl AuthUseCases {
             exp,
         };
 
-        let token = encode(
+        encode(
             &Header::default(),
             &claims,
             &EncodingKey::from_secret(self.jwt_secret.as_bytes()),
         )
-        .map_err(|_| AuthError::InvalidToken)?;
-
-        Ok(LoginResponse { token })
+        .map_err(|_| AuthError::InvalidToken)
     }
 
     pub async fn change_password(

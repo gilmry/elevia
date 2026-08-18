@@ -1,4 +1,4 @@
-use crate::infrastructure::web::{handlers, mcp};
+use crate::infrastructure::web::{handlers, mcp, oauth};
 use actix_web::web;
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
@@ -8,6 +8,14 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
                 .app_data(web::JsonConfig::default().error_handler(mcp::json_error_handler))
                 .route("", web::post().to(mcp::handle)),
         )
+        .route(
+            "/.well-known/oauth-authorization-server",
+            web::get().to(oauth::metadata),
+        )
+        .route("/oauth/register", web::post().to(oauth::register))
+        .route("/oauth/authorize", web::get().to(oauth::authorize_get))
+        .route("/oauth/authorize", web::post().to(oauth::authorize_post))
+        .route("/oauth/token", web::post().to(oauth::token))
         .route("/auth/login", web::post().to(handlers::login))
         .route(
             "/auth/change-password",
