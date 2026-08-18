@@ -75,9 +75,20 @@ bootstrap() {
     curl -fsSL https://get.docker.com | $sudo sh
   fi
 
-  if ! docker compose version >/dev/null 2>&1; then
+  if ! $sudo docker compose version >/dev/null 2>&1; then
     echo "docker compose (plugin v2) introuvable après installation de Docker" >&2
     exit 1
+  fi
+
+  # get.docker.com n'ajoute pas l'utilisateur au groupe docker : sans ça, le
+  # cron (qui tourne comme cet utilisateur, pas comme root) échoue avec
+  # "permission denied" sur /var/run/docker.sock.
+  local target_user="${SUDO_USER:-$(id -un)}"
+  if [ "$target_user" != "root" ] && ! id -nG "$target_user" | grep -qw docker; then
+    echo "==> ajout de $target_user au groupe docker"
+    $sudo usermod -aG docker "$target_user"
+    echo "note : reconnecte-toi (ou 'newgrp docker') pour que ça prenne effet dans ce shell ;"
+    echo "       les futures tâches cron en tiendront compte automatiquement (nouveau process)"
   fi
 
   if [ ! -f "$REPO_DIR/.env" ]; then
