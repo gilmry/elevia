@@ -1,0 +1,68 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+---
+
+<AppLayout title="Mentions légales">
+  <main>
+    <h1>Mentions légales</h1>
+
+    <div class="card">
+      <h2>Éditeur du site</h2>
+      <p>
+        Elevia (<code>elevia.ecosolva.com</code>) est édité par Gilles Maury,
+        indépendant (architecte solutions &amp; développeur freelance), basé à
+        Bruxelles, Belgique.
+      </p>
+      <p>
+        Numéro d'entreprise (BCE/TVA) : BE0670.778.061<br />
+        Contact : <a href="mailto:gilmry@gmail.com">gilmry@gmail.com</a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Directeur de publication</h2>
+      <p>Gilles Maury.</p>
+    </div>
+
+    <div class="card">
+      <h2>Hébergement</h2>
+      <p>
+        Elevia est auto-hébergé : l'application (backend, frontend, base de
+        données PostgreSQL) tourne sur un serveur dédié administré
+        directement par l'éditeur, sans sous-traitant d'hébergement tiers.
+        Le trafic est chiffré via Traefik et Let's Encrypt.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Propriété intellectuelle</h2>
+      <p>
+        Le code source d'Elevia est publié sous licence libre
+        AGPL-3.0-or-later et disponible sur
+        <a href="https://github.com/gilmry/elevia" target="_blank" rel="noopener">
+          github.com/gilmry/elevia
+        </a>.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Données personnelles</h2>
+      <p>
+        Les seules données personnelles traitées sont celles nécessaires au
+        fonctionnement du service : l'email et le mot de passe (chiffré via
+        bcrypt côté serveur) des comptes exploitation et administrateur.
+        Aucune donnée n'est transmise à un tiers, aucun traceur publicitaire
+        ou de mesure d'audience n'est utilisé.
+      </p>
+      <p>
+        Le jeton de session (JWT) est stocké dans le stockage local du
+        navigateur (<code>localStorage</code>) et expire automatiquement
+        après 12 heures.
+      </p>
+      <p>
+        Pour toute question relative à vos données, contactez
+        <a href="mailto:gilmry@gmail.com">gilmry@gmail.com</a>.
+      </p>
+    </div>
+  </main>
+</AppLayout>

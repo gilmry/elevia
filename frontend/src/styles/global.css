@@ -180,3 +180,13 @@ nav.app-nav a.active {
 .stat .value {
   font-weight: 700;
 }
+
+.app-footer {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.app-footer a {
+  color: var(--color-muted);
+}
