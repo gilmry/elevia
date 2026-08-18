@@ -87,6 +87,11 @@ rapport HTML avec la vidéo de chaque parcours. Voir
 [frontend/e2e/README.md](./frontend/e2e/README.md) pour la liste des
 parcours couverts et comment lancer/consulter les tests.
 
+Cette suite tourne aussi en CI ([`.github/workflows/e2e-living-docs.yml`](./.github/workflows/e2e-living-docs.yml))
+à chaque push sur `main`, et le rapport (vidéos incluses) est publié sur
+**https://gilmry.github.io/elevia/** : c'est la référence toujours à jour
+du comportement réel de l'app, sans avoir à relancer les tests en local.
+
 ## Déploiement production
 
 Le profil `prod` ajoute [Traefik](https://traefik.io/) devant `backend`

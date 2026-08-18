@@ -32,6 +32,11 @@ complète du parcours**. C'est la référence à jour de "comment se comporte
 l'app" - à consulter avant de faire confiance à une description écrite du
 comportement.
 
+Pas envie de lancer la stack en local ? Le même rapport (vidéos incluses)
+est régénéré à chaque push sur `main` par la CI
+([`.github/workflows/e2e-living-docs.yml`](../../.github/workflows/e2e-living-docs.yml))
+et publié sur **https://gilmry.github.io/elevia/**.
+
 `playwright-report/` et `test-results/` sont regénérés à chaque run et
 ignorés par git (voir `.gitignore`) : ne pas les committer, juste relancer
 `npm run test:e2e` pour les reproduire.
