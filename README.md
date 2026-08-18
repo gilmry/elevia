@@ -78,6 +78,15 @@ variables d'environnement `ADMIN_EMAIL` / `ADMIN_PASSWORD` (voir
 avec ce compte, créer les comptes des exploitations via le backoffice admin
 (`POST /admin/exploitations`) plutôt que de réutiliser ces identifiants.
 
+## Tests end-to-end
+
+Les parcours utilisateurs (admin comme exploitation) sont couverts par une
+suite Playwright dans `frontend/e2e/`, qui sert de documentation vivante :
+chaque run pilote un vrai navigateur contre la stack `dev` et produit un
+rapport HTML avec la vidéo de chaque parcours. Voir
+[frontend/e2e/README.md](./frontend/e2e/README.md) pour la liste des
+parcours couverts et comment lancer/consulter les tests.
+
 ## Déploiement production
 
 Le profil `prod` ajoute [Traefik](https://traefik.io/) devant `backend`

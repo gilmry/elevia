@@ -105,7 +105,7 @@
     <p>Aucun produit pour le moment.</p>
   {:else}
     {#each products as product (product.id)}
-      <div class="card">
+      <div class="card" data-testid="product-card-{product.nom}">
         {#if editing[product.id]}
           <label>Nom<input type="text" bind:value={editing[product.id].nom} /></label>
           <label>Unité<input type="text" bind:value={editing[product.id].unite} /></label>
