@@ -1,0 +1,33 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title} · Elevia</title>
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2e7d32" />
+  </head>
+  <body>
+    <slot />
+    <script>
+      import { getCurrentUser } from "../lib/auth";
+      import { startAutoSync } from "../lib/offlineQueue";
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("/service-worker.js");
+      }
+
+      if (getCurrentUser()) {
+        startAutoSync();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Nav from "../components/Nav.svelte";
+import ExploitationDashboard from "../components/ExploitationDashboard.svelte";
+---
+
+<AppLayout title="Mon dashboard">
+  <Nav client:load />
+  <main>
+    <ExploitationDashboard client:load />
+  </main>
+</AppLayout>
