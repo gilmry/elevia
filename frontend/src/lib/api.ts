@@ -76,6 +76,21 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
 
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<void>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword,
+      }),
+    }),
+
+  resetExploitationPassword: (exploitationId: string, newPassword: string) =>
+    request<void>(`/admin/exploitations/${exploitationId}/reset-password`, {
+      method: "POST",
+      body: JSON.stringify({ new_password: newPassword }),
+    }),
+
   listProducts: () => request<Product[]>("/products"),
 
   listEntries: (exploitationId: string) =>

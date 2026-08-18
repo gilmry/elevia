@@ -14,4 +14,14 @@ pub struct NewUser {
 pub trait UserRepository: Send + Sync {
     async fn create(&self, new: NewUser) -> Result<User, RepoError>;
     async fn find_by_email(&self, email: &str) -> Result<Option<User>, RepoError>;
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, RepoError>;
+    async fn find_by_exploitation_id(
+        &self,
+        exploitation_id: Uuid,
+    ) -> Result<Option<User>, RepoError>;
+    async fn update_password_hash(
+        &self,
+        user_id: Uuid,
+        password_hash: String,
+    ) -> Result<(), RepoError>;
 }

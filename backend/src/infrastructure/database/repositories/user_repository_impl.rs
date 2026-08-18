@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use uuid::Uuid;
 
 use crate::application::ports::{NewUser, RepoError, UserRepository};
 use crate::domain::entities::User;
@@ -40,5 +41,44 @@ impl UserRepository for PostgresUserRepository {
         .fetch_optional(&self.pool)
         .await
         .map_err(Into::into)
+    }
+
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<User>, RepoError> {
+        sqlx::query_as::<_, User>(
+            "SELECT id, exploitation_id, email, password_hash, role, created_at
+             FROM utilisateurs WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Into::into)
+    }
+
+    async fn find_by_exploitation_id(
+        &self,
+        exploitation_id: Uuid,
+    ) -> Result<Option<User>, RepoError> {
+        sqlx::query_as::<_, User>(
+            "SELECT id, exploitation_id, email, password_hash, role, created_at
+             FROM utilisateurs WHERE exploitation_id = $1",
+        )
+        .bind(exploitation_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(Into::into)
+    }
+
+    async fn update_password_hash(
+        &self,
+        user_id: Uuid,
+        password_hash: String,
+    ) -> Result<(), RepoError> {
+        sqlx::query("UPDATE utilisateurs SET password_hash = $1 WHERE id = $2")
+            .bind(password_hash)
+            .bind(user_id)
+            .execute(&self.pool)
+            .await
+            .map(|_| ())
+            .map_err(Into::into)
     }
 }

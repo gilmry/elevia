@@ -12,6 +12,17 @@ pub struct LoginResponse {
     pub token: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ChangePasswordRequest {
+    pub current_password: String,
+    pub new_password: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ResetPasswordRequest {
+    pub new_password: String,
+}
+
 /// JWT claims. `role` is serialized as the plain "admin"/"exploitation" string used
 /// by the `user_role` Postgres enum, so it round-trips through `Role` directly.
 #[derive(Debug, Clone, Serialize, Deserialize)]
