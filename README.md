@@ -116,6 +116,15 @@ Traefik demande les certificats au premier démarrage ; les logs
 (`docker compose logs traefik`) indiquent si le challenge ACME échoue (DNS
 pas encore propagé, port 80 fermé, etc.).
 
+### Déploiement automatique (gitops)
+
+`./deploy.sh` installe les dépendances (docker, docker compose, git, cron),
+crée `.env` depuis `.env.example` si absent, et programme un cron (toutes
+les 5 min par défaut, réglable via `CRON_SCHEDULE`) qui poll `origin/main` :
+tout nouveau commit sur `main` déclenche automatiquement `git pull` +
+`docker compose --profile prod up -d --build`. Éditer `.env` avant le
+premier déploiement (voir étape 2 ci-dessus). Logs dans `deploy.log`.
+
 ## Démo vidéo
 
 Pour une démo locale complète : `docker compose --profile dev up --build`,
