@@ -1,5 +1,6 @@
 pub mod app_state;
 pub mod handlers;
+pub mod mcp;
 pub mod middleware;
 pub mod routes;
 

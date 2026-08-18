@@ -78,6 +78,31 @@ variables d'environnement `ADMIN_EMAIL` / `ADMIN_PASSWORD` (voir
 avec ce compte, créer les comptes des exploitations via le backoffice admin
 (`POST /admin/exploitations`) plutôt que de réutiliser ces identifiants.
 
+## Connecter Claude (MCP)
+
+Le backend expose `POST /mcp`, un serveur [MCP](https://modelcontextprotocol.io/)
+(JSON-RPC 2.0, transport "Streamable HTTP") permettant à un admin ou une
+exploitation de brancher Claude directement sur son compte Elevia, en tant
+que connecteur distant. Sans session ni OAuth séparé : chaque requête
+s'authentifie avec le même `Authorization: Bearer <JWT>` que l'API REST
+(`POST /auth/login`) - un jeton expire au bout de 12h, il faut donc s'y
+reconnecter périodiquement.
+
+Outils disponibles, selon le rôle du compte :
+
+| Outil | Admin | Exploitation |
+|---|---|---|
+| `list_products` | oui | oui |
+| `get_coop_dashboard` | oui | oui |
+| `list_my_entries` | - | oui (ses propres coûts) |
+| `get_my_dashboard` | - | oui (son propre dashboard) |
+| `list_exploitations` | oui | - |
+
+Lecture seule pour l'instant : aucun outil ne modifie de données. La liste
+retournée par `tools/list` est déjà filtrée par rôle ; `tools/call`
+revérifie la même règle côté serveur (défense en profondeur, comme pour
+les endpoints REST équivalents).
+
 ## Tests end-to-end
 
 Les parcours utilisateurs (admin comme exploitation) sont couverts par une

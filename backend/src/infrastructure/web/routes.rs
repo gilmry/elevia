@@ -1,8 +1,9 @@
-use crate::infrastructure::web::handlers;
+use crate::infrastructure::web::{handlers, mcp};
 use actix_web::web;
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to(handlers::health))
+        .route("/mcp", web::post().to(mcp::handle))
         .route("/auth/login", web::post().to(handlers::login))
         .route(
             "/auth/change-password",
