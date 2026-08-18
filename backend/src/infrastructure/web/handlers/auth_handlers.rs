@@ -29,7 +29,7 @@ pub async fn change_password(
     {
         Ok(()) => HttpResponse::NoContent().finish(),
         Err(AuthError::InvalidCredentials) => unauthorized("current password is incorrect"),
-        Err(AuthError::WeakPassword) => bad_request("new password must be at least 8 characters"),
+        Err(err @ AuthError::WeakPassword) => bad_request(&err.to_string()),
         Err(err) => {
             tracing::error!(?err, "change_password failed");
             internal_error()

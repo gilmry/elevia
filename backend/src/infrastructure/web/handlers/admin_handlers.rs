@@ -76,7 +76,7 @@ pub async fn reset_exploitation_password(
     {
         Ok(()) => HttpResponse::NoContent().finish(),
         Err(AdminError::UnknownExploitation) => bad_request("unknown exploitation"),
-        Err(AdminError::WeakPassword) => bad_request("new password must be at least 8 characters"),
+        Err(err @ AdminError::WeakPassword) => bad_request(&err.to_string()),
         Err(err) => {
             tracing::error!(?err, "reset_password failed");
             internal_error()

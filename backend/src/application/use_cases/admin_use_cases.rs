@@ -136,7 +136,7 @@ impl AdminUseCases {
         exploitation_id: Uuid,
         dto: ResetPasswordRequest,
     ) -> Result<(), AdminError> {
-        if dto.new_password.len() < MIN_PASSWORD_LENGTH {
+        if dto.new_password.chars().count() < MIN_PASSWORD_LENGTH {
             return Err(AdminError::WeakPassword);
         }
 

@@ -58,9 +58,13 @@ impl UserRepository for PostgresUserRepository {
         &self,
         exploitation_id: Uuid,
     ) -> Result<Option<User>, RepoError> {
+        // No UNIQUE constraint on exploitation_id - app logic keeps it 1:1, but
+        // ORDER BY + LIMIT 1 keeps this deterministic (and error-free) even if
+        // that were ever violated, instead of `fetch_optional` erroring on >1 row.
         sqlx::query_as::<_, User>(
             "SELECT id, exploitation_id, email, password_hash, role, created_at
-             FROM utilisateurs WHERE exploitation_id = $1",
+             FROM utilisateurs WHERE exploitation_id = $1
+             ORDER BY created_at LIMIT 1",
         )
         .bind(exploitation_id)
         .fetch_optional(&self.pool)

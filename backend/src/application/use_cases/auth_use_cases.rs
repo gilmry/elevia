@@ -80,7 +80,7 @@ impl AuthUseCases {
         user_id: Uuid,
         dto: ChangePasswordRequest,
     ) -> Result<(), AuthError> {
-        if dto.new_password.len() < MIN_PASSWORD_LENGTH {
+        if dto.new_password.chars().count() < MIN_PASSWORD_LENGTH {
             return Err(AuthError::WeakPassword);
         }
 
