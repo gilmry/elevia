@@ -1,16 +1,45 @@
-# Elevia - local development orchestration
+# Elevia - orchestration
 #
 # Usage:
-#   cp .env.example .env        # then adjust secrets
-#   docker compose up           # production-like build (frontend served as static PWA)
-#   docker compose --profile dev up   # hot-reload dev mode (cargo-watch + astro dev)
+#   cp .env.example .env        # then adjust secrets/domain
+#   docker compose up -d        # production: Traefik + TLS, served on DOMAIN/API_DOMAIN
+#   docker compose --profile dev up   # local hot-reload dev mode (no Traefik, direct ports)
 #
 # Services:
+#   - traefik   : reverse proxy, terminates TLS via Let's Encrypt for DOMAIN/API_DOMAIN
 #   - postgres  : PostgreSQL 16, data persisted in a named volume
 #   - backend   : Rust/Actix-web API, waits for postgres healthcheck, runs SQLx migrations on boot
 #   - frontend  : Svelte + Astro PWA, served via nginx (default) or Astro dev server (--profile dev)
+#
+# Production DNS: point both DOMAIN and API_DOMAIN (A records) at this host before
+# starting - Traefik requests Let's Encrypt certificates for them on first boot.
 
 services:
+  traefik:
+    image: traefik:v3.2
+    container_name: elevia-traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Redirect all plain HTTP traffic to HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@ecosolva.com}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    networks:
+      - elevia-network
+
   postgres:
     image: postgres:16-alpine
     container_name: elevia-postgres
@@ -32,7 +61,7 @@ services:
     networks:
       - elevia-network
 
-  # --- Backend: production-like build (default profile) ---
+  # --- Backend: production-like build (default profile), fronted by Traefik ---
   backend:
     build:
       context: ./backend
@@ -45,15 +74,19 @@ services:
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8080
       RUST_LOG: ${RUST_LOG:-info}
-    ports:
-      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - elevia-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elevia-backend.rule=Host(`${API_DOMAIN:-api.elevia.ecosolva.com}`)"
+      - "traefik.http.routers.elevia-backend.entrypoints=websecure"
+      - "traefik.http.routers.elevia-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elevia-backend.loadbalancer.server.port=8080"
 
-  # --- Backend: dev mode with hot reload (cargo-watch) ---
+  # --- Backend: dev mode with hot reload (cargo-watch), direct port, no Traefik ---
   backend-dev:
     build:
       context: ./backend
@@ -79,23 +112,27 @@ services:
     networks:
       - elevia-network
 
-  # --- Frontend: production build, served as static PWA via nginx (default profile) ---
+  # --- Frontend: production build, served as static PWA via nginx (default profile), fronted by Traefik ---
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.com}
     container_name: elevia-frontend
     restart: unless-stopped
-    ports:
-      - "${FRONTEND_PORT:-4321}:80"
     depends_on:
       - backend
     networks:
       - elevia-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elevia-frontend.rule=Host(`${DOMAIN:-elevia.ecosolva.com}`)"
+      - "traefik.http.routers.elevia-frontend.entrypoints=websecure"
+      - "traefik.http.routers.elevia-frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.elevia-frontend.loadbalancer.server.port=80"
 
-  # --- Frontend: dev mode with hot reload (Astro dev server) ---
+  # --- Frontend: dev mode with hot reload (Astro dev server), direct port, no Traefik ---
   frontend-dev:
     build:
       context: ./frontend
@@ -120,5 +157,6 @@ networks:
 
 volumes:
   postgres_data:
+  traefik_certs:
   cargo_cache:
   target_cache:
