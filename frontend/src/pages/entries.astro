@@ -1,0 +1,14 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Nav from "../components/Nav.svelte";
+import EntryForm from "../components/EntryForm.svelte";
+import EntryList from "../components/EntryList.svelte";
+---
+
+<AppLayout title="Coûts">
+  <Nav client:load />
+  <main>
+    <EntryForm client:load />
+    <EntryList client:load />
+  </main>
+</AppLayout>

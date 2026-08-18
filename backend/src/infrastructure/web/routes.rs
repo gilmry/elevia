@@ -33,5 +33,6 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             "/admin/products/{id}",
             web::put().to(handlers::update_product),
         )
-        .route("/coop/dashboard", web::get().to(handlers::coop_dashboard));
+        .route("/coop/dashboard", web::get().to(handlers::coop_dashboard))
+        .route("/products", web::get().to(handlers::list_products));
 }

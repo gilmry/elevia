@@ -1,0 +1,12 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Nav from "../components/Nav.svelte";
+import CoopDashboard from "../components/CoopDashboard.svelte";
+---
+
+<AppLayout title="Coopérative">
+  <Nav client:load />
+  <main>
+    <CoopDashboard client:load />
+  </main>
+</AppLayout>

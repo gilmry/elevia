@@ -1,0 +1,12 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Nav from "../components/Nav.svelte";
+import ProductionForm from "../components/ProductionForm.svelte";
+---
+
+<AppLayout title="Production">
+  <Nav client:load />
+  <main>
+    <ProductionForm client:load />
+  </main>
+</AppLayout>

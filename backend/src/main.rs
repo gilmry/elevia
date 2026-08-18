@@ -4,7 +4,8 @@ use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
 
 use elevia_api::application::use_cases::{
-    AdminUseCases, AuthUseCases, CoopUseCases, DashboardUseCases, EntryUseCases, ProductionUseCases,
+    AdminUseCases, AuthUseCases, CatalogUseCases, CoopUseCases, DashboardUseCases, EntryUseCases,
+    ProductionUseCases,
 };
 use elevia_api::infrastructure::database::create_pool;
 use elevia_api::infrastructure::database::repositories::{
@@ -58,7 +59,12 @@ async fn main() -> std::io::Result<()> {
             entry_repo.clone(),
             production_repo.clone(),
         )),
-        coop_use_cases: Arc::new(CoopUseCases::new(entry_repo, production_repo, product_repo)),
+        coop_use_cases: Arc::new(CoopUseCases::new(
+            entry_repo,
+            production_repo,
+            product_repo.clone(),
+        )),
+        catalog_use_cases: Arc::new(CatalogUseCases::new(product_repo)),
     });
 
     tracing::info!("elevia-api listening on {host}:{port}");

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::application::use_cases::{
-    AdminUseCases, AuthUseCases, CoopUseCases, DashboardUseCases, EntryUseCases, ProductionUseCases,
+    AdminUseCases, AuthUseCases, CatalogUseCases, CoopUseCases, DashboardUseCases, EntryUseCases,
+    ProductionUseCases,
 };
 
 #[derive(Clone)]
@@ -12,4 +13,5 @@ pub struct AppState {
     pub dashboard_use_cases: Arc<DashboardUseCases>,
     pub admin_use_cases: Arc<AdminUseCases>,
     pub coop_use_cases: Arc<CoopUseCases>,
+    pub catalog_use_cases: Arc<CatalogUseCases>,
 }

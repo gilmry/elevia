@@ -1,0 +1,12 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import LoginForm from "../components/LoginForm.svelte";
+---
+
+<AppLayout title="Connexion">
+  <main>
+    <h1>Elevia</h1>
+    <p>Suivi des coûts et de la production de votre exploitation.</p>
+    <LoginForm client:load />
+  </main>
+</AppLayout>

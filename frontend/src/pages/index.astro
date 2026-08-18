@@ -1,25 +1,10 @@
 ---
-const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8080";
+import AppLayout from "../layouts/AppLayout.astro";
+import HomeRedirect from "../components/HomeRedirect.svelte";
 ---
 
-<html lang="fr">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Elevia</title>
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#2e7d32" />
-  </head>
-  <body>
-    <main>
-      <h1>Elevia</h1>
-      <p>Suivi des coûts et de la production — scaffold en cours.</p>
-      <p>API: {apiUrl}</p>
-    </main>
-    <script>
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/service-worker.js");
-      }
-    </script>
-  </body>
-</html>
+<AppLayout title="Elevia">
+  <main>
+    <HomeRedirect client:load />
+  </main>
+</AppLayout>

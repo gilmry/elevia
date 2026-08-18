@@ -1,0 +1,12 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import Nav from "../../components/Nav.svelte";
+import AdminProductList from "../../components/AdminProductList.svelte";
+---
+
+<AppLayout title="Produits">
+  <Nav client:load />
+  <main>
+    <AdminProductList client:load />
+  </main>
+</AppLayout>
