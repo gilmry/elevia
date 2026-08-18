@@ -12,7 +12,9 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [["html", { open: "never" }], ["list"]],
-  timeout: 30_000,
+  // Le journey le plus long (coop-lifecycle, ~27 actions) tournait à 10s sans
+  // slowMo ; avec le slowMo de 1s/action ci-dessous, il dépasse 30s.
+  timeout: 60_000,
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:4321",
     video: "on",
