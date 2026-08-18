@@ -53,6 +53,7 @@ Autres commandes utiles :
 | `journeys/coop-lifecycle.spec.ts` | Chemin nominal complet : l'admin ajoute un produit, corrige sa catégorie, enregistre une exploitation membre ; le membre se connecte, déclare un coût et une production, consulte son dashboard ; l'admin revoit le statut de saisie et le dashboard coopérative agrégé. |
 | `journeys/auth-access-control.spec.ts` | Mauvais mot de passe (message d'erreur, pas de navigation) ; visiteur anonyme redirigé vers `/login` ; admin redirigé hors d'une page réservée aux exploitations ; exploitation redirigée hors du backoffice admin. |
 | `journeys/offline-entry.spec.ts` | Saisie d'un coût sans réseau (file d'attente IndexedDB locale, message "hors ligne"), puis synchronisation automatique à la reconnexion. |
+| `journeys/password-change.spec.ts` | Un membre change son propre mot de passe depuis "Mon compte" (ancien mot de passe requis) et se reconnecte avec le nouveau ; un admin réinitialise le mot de passe oublié d'une exploitation depuis la liste, sans connaître l'ancien. |
 
 ## Notes de conception
 
