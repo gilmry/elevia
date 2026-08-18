@@ -17,6 +17,9 @@ const { title } = Astro.props;
   </head>
   <body>
     <slot />
+    <footer class="app-footer">
+      <a href="/mentions-legales">Mentions légales</a>
+    </footer>
     <script>
       import { getCurrentUser } from "../lib/auth";
       import { startAutoSync } from "../lib/offlineQueue";
