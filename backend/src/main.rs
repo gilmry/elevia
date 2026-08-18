@@ -1,6 +1,16 @@
+use std::sync::Arc;
+
 use actix_cors::Cors;
 use actix_web::{web, App, HttpServer};
+
+use elevia_api::application::use_cases::{
+    AdminUseCases, AuthUseCases, CoopUseCases, DashboardUseCases, EntryUseCases, ProductionUseCases,
+};
 use elevia_api::infrastructure::database::create_pool;
+use elevia_api::infrastructure::database::repositories::{
+    PostgresEntryRepository, PostgresExploitationRepository, PostgresProductRepository,
+    PostgresProductionRepository, PostgresUserRepository,
+};
 use elevia_api::infrastructure::web::{configure_routes, AppState};
 
 #[actix_web::main]
@@ -11,6 +21,7 @@ async fn main() -> std::io::Result<()> {
         .init();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let jwt_secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
     let host = std::env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
     let port: u16 = std::env::var("SERVER_PORT")
         .unwrap_or_else(|_| "8080".to_string())
@@ -26,9 +37,31 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("failed to run database migrations");
 
-    tracing::info!("elevia-api listening on {host}:{port}");
+    let exploitation_repo = Arc::new(PostgresExploitationRepository::new(db.clone()));
+    let user_repo = Arc::new(PostgresUserRepository::new(db.clone()));
+    let product_repo = Arc::new(PostgresProductRepository::new(db.clone()));
+    let entry_repo = Arc::new(PostgresEntryRepository::new(db.clone()));
+    let production_repo = Arc::new(PostgresProductionRepository::new(db.clone()));
 
-    let state = web::Data::new(AppState { db });
+    let state = web::Data::new(AppState {
+        auth_use_cases: Arc::new(AuthUseCases::new(user_repo.clone(), jwt_secret)),
+        entry_use_cases: Arc::new(EntryUseCases::new(entry_repo.clone(), product_repo.clone())),
+        production_use_cases: Arc::new(ProductionUseCases::new(production_repo.clone())),
+        dashboard_use_cases: Arc::new(DashboardUseCases::new(
+            entry_repo.clone(),
+            production_repo.clone(),
+        )),
+        admin_use_cases: Arc::new(AdminUseCases::new(
+            exploitation_repo,
+            user_repo,
+            product_repo.clone(),
+            entry_repo.clone(),
+            production_repo.clone(),
+        )),
+        coop_use_cases: Arc::new(CoopUseCases::new(entry_repo, production_repo, product_repo)),
+    });
+
+    tracing::info!("elevia-api listening on {host}:{port}");
 
     HttpServer::new(move || {
         App::new()

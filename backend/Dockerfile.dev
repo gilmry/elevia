@@ -1,6 +1,6 @@
 # Development image: hot reload via cargo-watch. Source is bind-mounted by docker-compose.
 
-FROM rust:1.83-slim-bookworm
+FROM rust:1-slim-bookworm
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
