@@ -18,3 +18,11 @@
 
 # Local env
 .env
+
+# Deploy runtime artifacts
+/deploy.log
+/.deploy.lock
+
+# Deploy runtime artifacts
+/deploy/deploy.log
+/deploy/.deploy.lock
