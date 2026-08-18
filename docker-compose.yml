@@ -1,15 +1,21 @@
 # Elevia - orchestration
 #
+# `dev` and `prod` are separate, mutually exclusive profiles - postgres is the
+# only service with no profile (shared by both). Compose starts every
+# non-profiled service unconditionally regardless of --profile, so prod
+# services are explicitly profiled too; otherwise `--profile dev` would start
+# them *alongside* backend-dev/frontend-dev, not instead of them.
+#
 # Usage:
-#   cp .env.example .env        # then adjust secrets/domain
-#   docker compose up -d        # production: Traefik + TLS, served on DOMAIN/API_DOMAIN
-#   docker compose --profile dev up   # local hot-reload dev mode (no Traefik, direct ports)
+#   cp .env.example .env               # then adjust secrets/domain
+#   docker compose --profile prod up -d --build   # production: Traefik + TLS, served on DOMAIN/API_DOMAIN
+#   docker compose --profile dev up --build       # local hot-reload dev mode (no Traefik, direct ports)
 #
 # Services:
-#   - traefik   : reverse proxy, terminates TLS via Let's Encrypt for DOMAIN/API_DOMAIN
+#   - traefik   : reverse proxy, terminates TLS via Let's Encrypt for DOMAIN/API_DOMAIN (prod only)
 #   - postgres  : PostgreSQL 16, data persisted in a named volume
 #   - backend   : Rust/Actix-web API, waits for postgres healthcheck, runs SQLx migrations on boot
-#   - frontend  : Svelte + Astro PWA, served via nginx (default) or Astro dev server (--profile dev)
+#   - frontend  : Svelte + Astro PWA, served via nginx (prod) or Astro dev server (dev)
 #
 # Production DNS: point both DOMAIN and API_DOMAIN (A records) at this host before
 # starting - Traefik requests Let's Encrypt certificates for them on first boot.
@@ -19,6 +25,13 @@ services:
     image: traefik:v3.2
     container_name: elevia-traefik
     restart: unless-stopped
+    profiles: ["prod"]
+    environment:
+      # Traefik's Docker client falls back to a very old default API version
+      # (1.24) when it can't auto-negotiate against the daemon, which some
+      # Docker Engine versions reject outright ("client version 1.24 is too
+      # old"). Pin it explicitly instead of relying on negotiation.
+      DOCKER_API_VERSION: "1.41"
     command:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -61,19 +74,24 @@ services:
     networks:
       - elevia-network
 
-  # --- Backend: production-like build (default profile), fronted by Traefik ---
+  # --- Backend: production-like build (prod profile only), fronted by Traefik ---
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: elevia-backend
     restart: unless-stopped
+    profiles: ["prod"]
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-elevia}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-elevia}
       JWT_SECRET: ${JWT_SECRET:-change-me-too-please-use-a-long-random-string}
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8080
       RUST_LOG: ${RUST_LOG:-info}
+      # Bootstraps the first admin account on startup if none exists yet - there is
+      # no public endpoint to create one otherwise.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@elevia.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-immediately}
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,6 +118,8 @@ services:
       SERVER_PORT: 8080
       RUST_LOG: debug
       RUST_BACKTRACE: "1"
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@elevia.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-immediately}
     ports:
       - "8080:8080"
     volumes:
@@ -112,7 +132,7 @@ services:
     networks:
       - elevia-network
 
-  # --- Frontend: production build, served as static PWA via nginx (default profile), fronted by Traefik ---
+  # --- Frontend: production build, served as static PWA via nginx (prod profile only), fronted by Traefik ---
   frontend:
     build:
       context: ./frontend
@@ -121,6 +141,7 @@ services:
         PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.com}
     container_name: elevia-frontend
     restart: unless-stopped
+    profiles: ["prod"]
     depends_on:
       - backend
     networks:
