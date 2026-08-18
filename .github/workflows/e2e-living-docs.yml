@@ -1,0 +1,113 @@
+name: E2E living documentation
+
+# The Playwright suite in frontend/e2e/ *is* the documentation of Elevia's
+# user journeys (see frontend/e2e/README.md): every run drives a real
+# browser against the dev stack and produces a self-contained HTML report
+# with a video of each journey. This workflow runs that suite against the
+# same `docker compose --profile dev` stack used locally, then publishes
+# the report (videos included) to GitHub Pages so "how does the app behave"
+# always has an up-to-date answer.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-living-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start dev stack (postgres + backend + frontend)
+        run: docker compose --profile dev up --build -d
+
+      # backend-dev builds via Dockerfile.dev (cargo-watch, no pre-built
+      # deps layer) and only starts compiling once the container boots, so
+      # the first build on a cold CI runner is several minutes, not seconds.
+      - name: Wait for backend health
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/health >/dev/null; then
+              echo "backend up after $((i * 10))s"; exit 0
+            fi
+            sleep 10
+          done
+          echo "backend did not become healthy in time" >&2
+          docker compose logs backend-dev
+          exit 1
+
+      - name: Wait for frontend
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4321 >/dev/null; then
+              echo "frontend up after $((i * 5))s"; exit 0
+            fi
+            sleep 5
+          done
+          echo "frontend did not become ready in time" >&2
+          docker compose logs frontend-dev
+          exit 1
+
+      # Runs on the runner (not in a container): PUBLIC_API_URL defaults to
+      # http://localhost:8080, which only resolves because the browser sits
+      # on the host next to the published container ports. Don't move this
+      # into a container without re-plumbing that URL.
+      - name: Run e2e tests (living documentation)
+        working-directory: frontend
+        env:
+          E2E_BASE_URL: http://localhost:4321
+        run: npm run test:e2e
+
+      - name: Dump stack logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop dev stack
+        if: always()
+        run: docker compose down -v
+
+      - name: Upload Playwright report artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/playwright-report
+
+  deploy-pages:
+    needs: e2e
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
