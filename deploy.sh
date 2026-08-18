@@ -24,9 +24,20 @@ run_deploy() {
 
   local_rev="$(git rev-parse main)"
   remote_rev="$(git rev-parse origin/main)"
-  [ "$local_rev" = "$remote_rev" ] && exit 0
+  running="$(docker compose --profile prod ps --status running -q 2>/dev/null)"
 
-  log "nouveau commit sur main ($local_rev -> $remote_rev), déploiement"
+  # Rien à faire seulement si main n'a pas bougé ET que prod tourne déjà -
+  # sinon (premier run après clone, ou prod arrêtée manuellement) on déploie
+  # même sans nouveau commit, pour que l'état voulu (prod up) soit garanti.
+  if [ "$local_rev" = "$remote_rev" ] && [ -n "$running" ]; then
+    exit 0
+  fi
+
+  if [ "$local_rev" = "$remote_rev" ]; then
+    log "prod non démarrée, déploiement initial ($remote_rev)"
+  else
+    log "nouveau commit sur main ($local_rev -> $remote_rev), déploiement"
+  fi
 
   if ! git checkout main --quiet || ! git merge --ff-only origin/main --quiet; then
     log "échec du fast-forward vers origin/main, déploiement annulé"
