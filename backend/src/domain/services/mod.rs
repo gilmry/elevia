@@ -1,1 +1,3 @@
-// Pure domain services (e.g. cost-per-unit / margin computations) land here.
+mod cost_analysis;
+
+pub use cost_analysis::{cost_per_unit, estimated_margin};

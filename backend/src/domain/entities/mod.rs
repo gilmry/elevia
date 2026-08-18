@@ -1,2 +1,11 @@
-// Domain entities (Exploitation, Utilisateur, Product, Entry, Production) land here
-// once the folder structure and data model are validated.
+mod entry;
+mod exploitation;
+mod product;
+mod production;
+mod user;
+
+pub use entry::Entry;
+pub use exploitation::Exploitation;
+pub use product::Product;
+pub use production::Production;
+pub use user::{Role, User};
