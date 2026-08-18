@@ -38,6 +38,8 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("failed to run database migrations");
 
+    elevia_api::infrastructure::bootstrap::bootstrap_admin(&db).await;
+
     let exploitation_repo = Arc::new(PostgresExploitationRepository::new(db.clone()));
     let user_repo = Arc::new(PostgresUserRepository::new(db.clone()));
     let product_repo = Arc::new(PostgresProductRepository::new(db.clone()));

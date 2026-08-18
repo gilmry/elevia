@@ -11,11 +11,12 @@ en local via Docker Compose.
 
 ## Statut
 
-🚧 Scaffold en cours. Ce commit pose la structure de dossiers, le
-docker-compose.yml et un squelette minimal buildable (endpoint `/health`
-côté backend, page d'accueil + manifest PWA côté frontend). Le modèle de
-données, les handlers métier et les tests BDD d'isolation arrivent dans un
-second temps.
+Backend (modèle de données, endpoints v1, isolation par exploitation, test
+BDD d'isolation) et frontend (connexion, saisie coûts/production,
+dashboards, backoffice admin, queue offline) sont en place. Reste à
+valider : un passage `docker compose up` de bout en bout et le test BDD
+`cargo test --test bdd` (nécessitent Docker, non exécutés dans l'environnement
+de développement de ce dépôt).
 
 ## Structure du projet
 
@@ -40,11 +41,12 @@ elevia/
 
 ## Démarrer en local (développement)
 
-Le profil par défaut (`docker compose up`) est le profil **production** :
-il passe par Traefik et demande un certificat Let's Encrypt pour de vrais
-noms de domaine (voir [Déploiement](#déploiement-production)), donc il ne
-fonctionne pas tel quel en local sans domaine. Pour développer en local,
-utiliser le profil `dev`, qui expose les services directement sans Traefik :
+`dev` et `prod` sont deux profils Compose exclusifs (seul `postgres` n'a pas
+de profil et tourne dans les deux). Le profil `prod` passe par Traefik et
+demande un certificat Let's Encrypt pour de vrais noms de domaine (voir
+[Déploiement](#déploiement-production)), donc il ne fonctionne pas tel quel
+en local sans domaine. Pour développer en local, utiliser le profil `dev`,
+qui expose les services directement sans Traefik :
 
 1. Copier le fichier d'environnement :
 
@@ -65,9 +67,20 @@ utiliser le profil `dev`, qui expose les services directement sans Traefik :
    Les migrations SQLx s'exécutent automatiquement au démarrage du backend
    (`sqlx::migrate!` dans `main.rs`).
 
+### Premier login
+
+Il n'existe aucun mot de passe par défaut codé en dur, et aucune route
+publique ne permet de créer le premier compte admin (toutes les routes
+`/admin/...` exigent déjà un token admin). Au tout premier démarrage, si
+aucun admin n'existe encore en base, le backend en crée un à partir des
+variables d'environnement `ADMIN_EMAIL` / `ADMIN_PASSWORD` (voir
+`.env.example` - à changer avant tout déploiement réel). Une fois connecté
+avec ce compte, créer les comptes des exploitations via le backoffice admin
+(`POST /admin/exploitations`) plutôt que de réutiliser ces identifiants.
+
 ## Déploiement production
 
-Le profil par défaut ajoute [Traefik](https://traefik.io/) devant `backend`
+Le profil `prod` ajoute [Traefik](https://traefik.io/) devant `backend`
 et `frontend`, avec TLS automatique via Let's Encrypt (challenge HTTP) pour
 deux sous-domaines :
 
@@ -82,7 +95,7 @@ deux sous-domaines :
    `JWT_SECRET` et les identifiants Postgres.
 3. Ouvrir les ports 80 et 443 sur le serveur (le 80 sert au challenge ACME
    et à la redirection vers HTTPS).
-4. `docker compose up -d --build`
+4. `docker compose --profile prod up -d --build`
 
 Traefik demande les certificats au premier démarrage ; les logs
 (`docker compose logs traefik`) indiquent si le challenge ACME échoue (DNS
