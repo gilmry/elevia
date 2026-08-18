@@ -92,7 +92,8 @@ deux sous-domaines :
 1. Pointer les enregistrements DNS `DOMAIN` et `API_DOMAIN` (A records) vers
    l'IP du serveur.
 2. `cp .env.example .env` puis ajuster `DOMAIN`, `API_DOMAIN`, `ACME_EMAIL`,
-   `JWT_SECRET` et les identifiants Postgres.
+   `JWT_SECRET`, `PUBLIC_API_URL` (`https://<API_DOMAIN>`) et les identifiants
+   Postgres.
 3. Ouvrir les ports 80 et 443 sur le serveur (le 80 sert au challenge ACME
    et à la redirection vers HTTPS).
 4. `docker compose --profile prod up -d --build`
