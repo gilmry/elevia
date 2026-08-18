@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::application::dto::month::current_month_start;
 use crate::application::dto::{
     CreateExploitationDto, CreateProductDto, ExploitationResponseDto, ExploitationStatusDto,
-    ProductResponseDto, UpdateProductDto,
+    ProductResponseDto, ResetPasswordRequest, UpdateProductDto,
 };
 use crate::application::ports::{
     EntryRepository, ExploitationRepository, NewExploitation, NewProduct, NewUser, ProductChanges,
@@ -14,12 +14,18 @@ use crate::application::ports::{
 };
 use crate::domain::entities::Role;
 
+const MIN_PASSWORD_LENGTH: usize = 8;
+
 #[derive(Debug, Error)]
 pub enum AdminError {
     #[error("an account with this email already exists")]
     EmailTaken,
     #[error("unknown product")]
     UnknownProduct,
+    #[error("unknown exploitation")]
+    UnknownExploitation,
+    #[error("new password must be at least {MIN_PASSWORD_LENGTH} characters")]
+    WeakPassword,
     #[error("password hashing failed")]
     HashingFailed,
     #[error("internal error: {0}")]
@@ -123,6 +129,31 @@ impl AdminUseCases {
             })
             .await?;
         Ok(product.into())
+    }
+
+    pub async fn reset_password(
+        &self,
+        exploitation_id: Uuid,
+        dto: ResetPasswordRequest,
+    ) -> Result<(), AdminError> {
+        if dto.new_password.chars().count() < MIN_PASSWORD_LENGTH {
+            return Err(AdminError::WeakPassword);
+        }
+
+        let user = self
+            .user_repo
+            .find_by_exploitation_id(exploitation_id)
+            .await?
+            .ok_or(AdminError::UnknownExploitation)?;
+
+        let password_hash = bcrypt::hash(&dto.new_password, bcrypt::DEFAULT_COST)
+            .map_err(|_| AdminError::HashingFailed)?;
+
+        self.user_repo
+            .update_password_hash(user.id, password_hash)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn update_product(

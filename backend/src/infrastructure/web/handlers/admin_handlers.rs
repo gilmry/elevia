@@ -1,7 +1,9 @@
 use actix_web::{web, HttpResponse};
 use uuid::Uuid;
 
-use crate::application::dto::{CreateExploitationDto, CreateProductDto, UpdateProductDto};
+use crate::application::dto::{
+    CreateExploitationDto, CreateProductDto, ResetPasswordRequest, UpdateProductDto,
+};
 use crate::application::use_cases::AdminError;
 use crate::infrastructure::web::app_state::AppState;
 use crate::infrastructure::web::handlers::responses::{
@@ -52,6 +54,31 @@ pub async fn list_exploitations(
         Ok(list) => HttpResponse::Ok().json(list),
         Err(err) => {
             tracing::error!(?err, "list_exploitations failed");
+            internal_error()
+        }
+    }
+}
+
+pub async fn reset_exploitation_password(
+    state: web::Data<AppState>,
+    user: AuthenticatedUser,
+    path: web::Path<Uuid>,
+    dto: web::Json<ResetPasswordRequest>,
+) -> HttpResponse {
+    if let Err(resp) = require_admin(&user) {
+        return resp;
+    }
+
+    match state
+        .admin_use_cases
+        .reset_password(path.into_inner(), dto.into_inner())
+        .await
+    {
+        Ok(()) => HttpResponse::NoContent().finish(),
+        Err(AdminError::UnknownExploitation) => bad_request("unknown exploitation"),
+        Err(err @ AdminError::WeakPassword) => bad_request(&err.to_string()),
+        Err(err) => {
+            tracing::error!(?err, "reset_password failed");
             internal_error()
         }
     }

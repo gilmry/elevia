@@ -115,6 +115,11 @@ button.secondary {
   font-weight: 600;
 }
 
+.success {
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
 .notice {
   background: #fff3cd;
   border: 1px solid #ffe08a;

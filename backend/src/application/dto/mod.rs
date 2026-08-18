@@ -7,7 +7,7 @@ pub mod month;
 mod product;
 mod production;
 
-pub use auth::{Claims, LoginRequest, LoginResponse};
+pub use auth::{ChangePasswordRequest, Claims, LoginRequest, LoginResponse, ResetPasswordRequest};
 pub use coop::{CoopDashboardDto, ProductNeedDto, QuartilesDto};
 pub use dashboard::{ExploitationDashboardDto, MonthlyStatsDto};
 pub use entry::{CreateEntryDto, EntryResponseDto};

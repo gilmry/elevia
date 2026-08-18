@@ -5,6 +5,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to(handlers::health))
         .route("/auth/login", web::post().to(handlers::login))
         .route(
+            "/auth/change-password",
+            web::post().to(handlers::change_password),
+        )
+        .route(
             "/exploitations/{id}/entries",
             web::post().to(handlers::submit_entry),
         )
@@ -27,6 +31,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
         .route(
             "/admin/exploitations",
             web::get().to(handlers::list_exploitations),
+        )
+        .route(
+            "/admin/exploitations/{id}/reset-password",
+            web::post().to(handlers::reset_exploitation_password),
         )
         .route("/admin/products", web::post().to(handlers::create_product))
         .route(

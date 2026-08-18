@@ -26,6 +26,7 @@
       <a href="/admin/products" class:active={path === "/admin/products"}>Produits</a>
     {/if}
     <a href="/coop" class:active={path === "/coop"}>Coopérative</a>
+    <a href="/account" class:active={path === "/account"}>Mon compte</a>
     <button class="secondary" on:click={logout}>Déconnexion</button>
   </nav>
 {/if}

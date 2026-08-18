@@ -9,8 +9,11 @@ mod responses;
 
 use actix_web::HttpResponse;
 
-pub use admin_handlers::{create_exploitation, create_product, list_exploitations, update_product};
-pub use auth_handlers::login;
+pub use admin_handlers::{
+    create_exploitation, create_product, list_exploitations, reset_exploitation_password,
+    update_product,
+};
+pub use auth_handlers::{change_password, login};
 pub use catalog_handlers::list_products;
 pub use coop_handlers::coop_dashboard;
 pub use dashboard_handlers::exploitation_dashboard;

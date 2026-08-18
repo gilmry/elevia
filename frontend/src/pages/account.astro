@@ -1,0 +1,16 @@
+---
+import AppLayout from "../layouts/AppLayout.astro";
+import Nav from "../components/Nav.svelte";
+import ChangePasswordForm from "../components/ChangePasswordForm.svelte";
+---
+
+<AppLayout title="Mon compte">
+  <Nav client:load />
+  <main>
+    <h1>Mon compte</h1>
+    <div class="card">
+      <h2>Changer mon mot de passe</h2>
+      <ChangePasswordForm client:load />
+    </div>
+  </main>
+</AppLayout>
