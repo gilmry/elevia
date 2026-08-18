@@ -1,0 +1,16 @@
+# Rust
+/backend/target
+/backend/.env
+
+# Node
+/frontend/node_modules
+/frontend/dist
+/frontend/.astro
+/frontend/.env
+
+# Editors / OS
+.DS_Store
+*.swp
+
+# Local env
+.env

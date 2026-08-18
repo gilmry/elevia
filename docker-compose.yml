@@ -1,0 +1,124 @@
+# Elevia - local development orchestration
+#
+# Usage:
+#   cp .env.example .env        # then adjust secrets
+#   docker compose up           # production-like build (frontend served as static PWA)
+#   docker compose --profile dev up   # hot-reload dev mode (cargo-watch + astro dev)
+#
+# Services:
+#   - postgres  : PostgreSQL 16, data persisted in a named volume
+#   - backend   : Rust/Actix-web API, waits for postgres healthcheck, runs SQLx migrations on boot
+#   - frontend  : Svelte + Astro PWA, served via nginx (default) or Astro dev server (--profile dev)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: elevia-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-elevia}
+      POSTGRES_USER: ${POSTGRES_USER:-elevia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    ports:
+      # Bind to localhost only - not exposed beyond the host
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-elevia} -d ${POSTGRES_DB:-elevia}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - elevia-network
+
+  # --- Backend: production-like build (default profile) ---
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: elevia-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-elevia}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-elevia}
+      JWT_SECRET: ${JWT_SECRET:-change-me-too-please-use-a-long-random-string}
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8080
+      RUST_LOG: ${RUST_LOG:-info}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - elevia-network
+
+  # --- Backend: dev mode with hot reload (cargo-watch) ---
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: elevia-backend-dev
+    profiles: ["dev"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-elevia}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-elevia}
+      JWT_SECRET: ${JWT_SECRET:-change-me-too-please-use-a-long-random-string}
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8080
+      RUST_LOG: debug
+      RUST_BACKTRACE: "1"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - cargo_cache:/usr/local/cargo/registry
+      - target_cache:/app/target
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - elevia-network
+
+  # --- Frontend: production build, served as static PWA via nginx (default profile) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+    container_name: elevia-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-4321}:80"
+    depends_on:
+      - backend
+    networks:
+      - elevia-network
+
+  # --- Frontend: dev mode with hot reload (Astro dev server) ---
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: elevia-frontend-dev
+    profiles: ["dev"]
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+    ports:
+      - "${FRONTEND_PORT:-4321}:4321"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-dev
+    networks:
+      - elevia-network
+
+networks:
+  elevia-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  cargo_cache:
+  target_cache:
