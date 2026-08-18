@@ -12,8 +12,13 @@ RUN apt-get update && apt-get install -y \
 COPY Cargo.toml Cargo.lock* ./
 COPY src ./src
 COPY migrations ./migrations
+# Cargo validates every [[test]] path while parsing the manifest, even when only
+# building a single --bin target below, so tests/ must be present in the build context.
+COPY tests ./tests
 
-RUN cargo build --release
+# --bin skips compiling the bdd test binary and its dev-dependencies (cucumber,
+# testcontainers, reqwest), which aren't needed in the production image.
+RUN cargo build --release --bin elevia-api
 
 FROM debian:bookworm-slim
 WORKDIR /app
