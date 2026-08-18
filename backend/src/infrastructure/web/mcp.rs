@@ -8,7 +8,7 @@
 //! existing use case exactly as the REST handlers do, so there is no new
 //! business logic here, only a JSON-RPC adapter and a role-based tool list.
 
-use actix_web::{web, HttpResponse};
+use actix_web::{error, web, HttpRequest, HttpResponse};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -16,6 +16,19 @@ use crate::infrastructure::web::app_state::AppState;
 use crate::infrastructure::web::middleware::AuthenticatedUser;
 
 const PROTOCOL_VERSION: &str = "2025-06-18";
+
+/// Malformed request bodies would otherwise fall through to actix's default
+/// plain-text 400, which isn't valid JSON-RPC and could confuse a strict MCP
+/// client. `id` is unknown at this point (the body didn't even parse), so it
+/// is null per the JSON-RPC spec for that case.
+pub fn json_error_handler(err: error::JsonPayloadError, _req: &HttpRequest) -> error::Error {
+    let body = json!({
+        "jsonrpc": "2.0",
+        "id": Value::Null,
+        "error": { "code": -32700, "message": format!("parse error: {err}") },
+    });
+    error::InternalError::from_response(err, HttpResponse::BadRequest().json(body)).into()
+}
 
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcRequest {

@@ -3,7 +3,11 @@ use actix_web::web;
 
 pub fn configure_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to(handlers::health))
-        .route("/mcp", web::post().to(mcp::handle))
+        .service(
+            web::scope("/mcp")
+                .app_data(web::JsonConfig::default().error_handler(mcp::json_error_handler))
+                .route("", web::post().to(mcp::handle)),
+        )
         .route("/auth/login", web::post().to(handlers::login))
         .route(
             "/auth/change-password",
