@@ -18,6 +18,9 @@ export default defineConfig({
     video: "on",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
+    // 1s entre chaque action Playwright : rend les vidéos (documentation
+    // vivante) suivables à l'oeil, plutôt qu'un enchaînement illisible.
+    launchOptions: { slowMo: 1_000 },
   },
   projects: [
     {
