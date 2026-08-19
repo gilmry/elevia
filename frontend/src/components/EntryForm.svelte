@@ -3,6 +3,7 @@
   import { api, ApiError, OfflineError } from "../lib/api";
   import { requireAuth } from "../lib/auth";
   import { queueEntry } from "../lib/offlineQueue";
+  import { notifyEntriesChanged } from "../lib/events";
   import { CURRENCY_SYMBOL } from "../lib/format";
   import type { Product } from "../lib/types";
 
@@ -63,6 +64,7 @@
       quantite = "";
       prixUnitaire = "";
       cout = "";
+      notifyEntriesChanged();
     } catch (err) {
       if (err instanceof OfflineError) {
         await queueEntry(exploitationId, input);

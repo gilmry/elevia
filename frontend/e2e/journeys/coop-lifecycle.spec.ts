@@ -87,9 +87,6 @@ test("cooperative admin onboards a member, who declares costs and production", a
     await page.getByRole("button", { name: "Enregistrer" }).click();
 
     await expect(page.getByText("Coût enregistré.")).toBeVisible();
-    // EntryList only fetches on mount and isn't wired to the form's
-    // submission, so the freshly-submitted entry needs a reload to appear.
-    await page.reload();
     const historyRow = page.locator("tr", { hasText: productName });
     await expect(historyRow).toBeVisible();
     // Coût column (Mois, Produit, Qté, Coût, then the delete button cell) -
