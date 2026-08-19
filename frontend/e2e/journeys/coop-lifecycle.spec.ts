@@ -82,7 +82,7 @@ test("cooperative admin onboards a member, who declares costs and production", a
   await test.step("member declares a monthly input cost", async () => {
     await page.getByLabel("Produit / intrant").selectOption({ label: `${productName} (kg)` });
     await page.getByLabel("Quantité").fill("20");
-    await page.getByLabel("Coût (€)").fill("150");
+    await page.getByLabel("Coût (FCFA)").fill("150");
     await page.getByLabel("Mois").fill(month);
     await page.getByRole("button", { name: "Enregistrer" }).click();
 
@@ -95,7 +95,7 @@ test("cooperative admin onboards a member, who declares costs and production", a
     // Last cell = Coût - scoped to that column, not a loose text search,
     // since the product's random suffix can itself contain "150". The
     // backend renders the decimal with its own precision, so match loosely.
-    await expect(historyRow.getByRole("cell").last()).toHaveText(/^150(\.\d+)? €$/);
+    await expect(historyRow.getByRole("cell").last()).toHaveText(/^150(\.\d+)? FCFA$/);
   });
 
   await test.step("member declares monthly production", async () => {
@@ -117,7 +117,7 @@ test("cooperative admin onboards a member, who declares costs and production", a
 
     const monthCard = page.locator(".card", { hasText: month });
     const costStat = monthCard.locator(".stat", { hasText: "Coût total" });
-    await expect(costStat.locator(".value")).toHaveText(/^150(\.\d+)? €$/);
+    await expect(costStat.locator(".value")).toHaveText(/^150(\.\d+)? FCFA$/);
     const producedStat = monthCard.locator(".stat", { hasText: "Quantité produite" });
     await expect(producedStat.locator(".value")).toHaveText(/^10(\.\d+)?$/);
   });

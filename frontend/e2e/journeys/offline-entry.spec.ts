@@ -53,7 +53,7 @@ test("a cost entry submitted offline is queued locally, then synced on reconnect
 
     await page.getByLabel("Produit / intrant").selectOption({ label: `${productName} (L)` });
     await page.getByLabel("Quantité").fill("40");
-    await page.getByLabel("Coût (€)").fill("80");
+    await page.getByLabel("Coût (FCFA)").fill("80");
     await page.getByLabel("Mois").fill(currentMonth());
     await page.getByRole("button", { name: "Enregistrer" }).click();
 
@@ -94,6 +94,6 @@ test("a cost entry submitted offline is queued locally, then synced on reconnect
     await expect(historyRow).toBeVisible();
     // Last cell = Coût, scoped to that column: the product's random suffix
     // can itself contain "80", so a loose text search would be ambiguous.
-    await expect(historyRow.getByRole("cell").last()).toHaveText(/^80(\.\d+)? €$/);
+    await expect(historyRow.getByRole("cell").last()).toHaveText(/^80(\.\d+)? FCFA$/);
   });
 });
