@@ -16,6 +16,7 @@ pub struct MonthlyExportRowDto {
     pub unite: Option<String>,
     pub prix_unitaire_vente: Option<Decimal>,
     pub estimated_margin: Option<Decimal>,
+    pub cost_per_unit: Option<Decimal>,
 }
 
 #[derive(Debug, Serialize)]

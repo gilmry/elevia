@@ -12,7 +12,7 @@ use crate::application::ports::{
     EntryRepository, ExploitationRepository, ProductRepository, ProductionRepository, RepoError,
 };
 use crate::domain::entities::Production;
-use crate::domain::services::estimated_margin;
+use crate::domain::services::{cost_per_unit, estimated_margin};
 
 #[derive(Debug, Error)]
 pub enum ExportError {
@@ -118,6 +118,8 @@ impl ExportUseCases {
                     estimated_margin: production.and_then(|p| {
                         estimated_margin(total_cost, p.quantite_vendue, p.prix_unitaire_vente)
                     }),
+                    cost_per_unit: production
+                        .and_then(|p| cost_per_unit(total_cost, p.quantite_produite)),
                 }
             })
             .collect();
