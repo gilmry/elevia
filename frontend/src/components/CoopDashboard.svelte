@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { api } from "../lib/api";
   import { requireAuth } from "../lib/auth";
+  import { CURRENCY_SYMBOL } from "../lib/format";
   import type { CoopDashboard } from "../lib/types";
 
   let dashboard: CoopDashboard | null = null;
@@ -56,7 +57,7 @@
   <div class="card">
     <h2>Marge moyenne</h2>
     {#if dashboard.average_margin !== null}
-      <div class="stat"><span class="value">{dashboard.average_margin} €</span></div>
+      <div class="stat"><span class="value">{dashboard.average_margin} {CURRENCY_SYMBOL}</span></div>
     {:else}
       <p>Pas encore de données.</p>
     {/if}
@@ -67,17 +68,17 @@
     {#if dashboard.cost_per_unit_quartiles}
       <div class="stat">
         <span class="label">Q1</span><span class="value"
-          >{dashboard.cost_per_unit_quartiles.q1} €</span
+          >{dashboard.cost_per_unit_quartiles.q1} {CURRENCY_SYMBOL}</span
         >
       </div>
       <div class="stat">
         <span class="label">Médiane</span><span class="value"
-          >{dashboard.cost_per_unit_quartiles.median} €</span
+          >{dashboard.cost_per_unit_quartiles.median} {CURRENCY_SYMBOL}</span
         >
       </div>
       <div class="stat">
         <span class="label">Q3</span><span class="value"
-          >{dashboard.cost_per_unit_quartiles.q3} €</span
+          >{dashboard.cost_per_unit_quartiles.q3} {CURRENCY_SYMBOL}</span
         >
       </div>
     {:else}

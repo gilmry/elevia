@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { api } from "../lib/api";
   import { requireAuth } from "../lib/auth";
+  import { CURRENCY_SYMBOL } from "../lib/format";
   import type { Entry, Product } from "../lib/types";
 
   let entries: Entry[] = [];
@@ -52,7 +53,7 @@
           <td>{entry.mois}</td>
           <td>{products[entry.product_id]?.nom ?? "?"}</td>
           <td>{entry.quantite}</td>
-          <td>{entry.cout} €</td>
+          <td>{entry.cout} {CURRENCY_SYMBOL}</td>
         </tr>
       {/each}
     </tbody>
