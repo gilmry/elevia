@@ -39,14 +39,20 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Work around flaky azure.archive.ubuntu.com mirror
+        # apt (via `playwright install --with-deps`) has repeatedly hung or
+        # crawled specifically on azure.archive.ubuntu.com on GitHub-hosted
+        # runners (seen: full stalls with zero progress, and a 21MB font
+        # package taking 9+ minutes), while archive.ubuntu.com resolves fine
+        # in the very same logs. Drop the flaky host from the mirror list so
+        # apt only ever talks to the one that actually works.
+        run: |
+          sudo sed -i '/azure\.archive\.ubuntu\.com/d' /etc/apt/apt-mirrors.txt 2>/dev/null || true
+          sudo sed -i 's|azure\.archive\.ubuntu\.com|archive.ubuntu.com|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+
       - name: Install Playwright browsers
         working-directory: frontend
-        # apt (via --with-deps) occasionally hangs or crawls on the Azure
-        # ubuntu mirror on GitHub-hosted runners - 10 min covers a genuinely
-        # slow-but-progressing mirror (seen: 21MB of font packages taking
-        # several minutes) without burning the whole 30 min job budget on a
-        # truly stuck attempt. Retry once instead of failing outright.
-        timeout-minutes: 10
+        timeout-minutes: 8
         run: npx playwright install --with-deps chromium || npx playwright install --with-deps chromium
 
       - name: Start dev stack (postgres + backend + frontend)
