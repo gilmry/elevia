@@ -92,8 +92,9 @@ test("a cost entry submitted offline is queued locally, then synced on reconnect
     await page.reload();
     const historyRow = page.locator("tr", { hasText: productName });
     await expect(historyRow).toBeVisible();
-    // Last cell = Coût, scoped to that column: the product's random suffix
-    // can itself contain "80", so a loose text search would be ambiguous.
-    await expect(historyRow.getByRole("cell").last()).toHaveText(/^80(\.\d+)? FCFA$/);
+    // Coût column (Mois, Produit, Qté, Coût, then the delete button cell) -
+    // scoped to that column: the product's random suffix can itself contain
+    // "80", so a loose text search would be ambiguous.
+    await expect(historyRow.getByRole("cell").nth(3)).toHaveText(/^80(\.\d+)? FCFA$/);
   });
 });

@@ -1,22 +1,22 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { api } from "../lib/api";
+  import { api, ApiError } from "../lib/api";
   import { requireAuth } from "../lib/auth";
   import { CURRENCY_SYMBOL, formatAmount, formatQuantity } from "../lib/format";
   import type { Entry, Product } from "../lib/types";
 
+  let exploitationId = "";
   let entries: Entry[] = [];
   let products: Record<string, Product> = {};
   let loading = true;
   let error = "";
+  let deletingId: string | null = null;
 
-  onMount(async () => {
-    const user = requireAuth("exploitation");
-    if (!user || !user.exploitation_id) return;
-
+  async function load() {
+    loading = true;
     try {
       const [entryList, productList] = await Promise.all([
-        api.listEntries(user.exploitation_id),
+        api.listEntries(exploitationId),
         api.listProducts(),
       ]);
       entries = entryList.sort((a, b) => b.mois.localeCompare(a.mois));
@@ -26,7 +26,30 @@
     } finally {
       loading = false;
     }
+  }
+
+  onMount(() => {
+    const user = requireAuth("exploitation");
+    if (!user || !user.exploitation_id) return;
+    exploitationId = user.exploitation_id;
+    load();
   });
+
+  async function removeEntry(entry: Entry) {
+    if (!confirm(`Supprimer la saisie "${products[entry.product_id]?.nom ?? "?"}" (${entry.mois}) ?`)) {
+      return;
+    }
+    deletingId = entry.id;
+    error = "";
+    try {
+      await api.deleteEntry(exploitationId, entry.id);
+      entries = entries.filter((e) => e.id !== entry.id);
+    } catch (err) {
+      error = err instanceof ApiError ? err.message : "Impossible de supprimer cette saisie.";
+    } finally {
+      deletingId = null;
+    }
+  }
 </script>
 
 <h2>Historique</h2>
@@ -45,6 +68,7 @@
         <th>Produit</th>
         <th>Qté</th>
         <th>Coût</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -54,8 +78,29 @@
           <td>{products[entry.product_id]?.nom ?? "?"}</td>
           <td>{formatQuantity(entry.quantite)} {products[entry.product_id]?.unite ?? ""}</td>
           <td>{formatAmount(entry.cout)} {CURRENCY_SYMBOL}</td>
+          <td>
+            <button
+              class="secondary compact"
+              on:click={() => removeEntry(entry)}
+              disabled={deletingId === entry.id}
+            >
+              {deletingId === entry.id ? "..." : "Supprimer"}
+            </button>
+          </td>
         </tr>
       {/each}
     </tbody>
   </table>
+  {#if error}
+    <p class="error">{error}</p>
+  {/if}
 {/if}
+
+<style>
+  button.compact {
+    min-height: unset;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+</style>

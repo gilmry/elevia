@@ -17,7 +17,7 @@ pub use auth_handlers::{change_password, login};
 pub use catalog_handlers::list_products;
 pub use coop_handlers::coop_dashboard;
 pub use dashboard_handlers::exploitation_dashboard;
-pub use entry_handlers::{list_entries, submit_entry};
+pub use entry_handlers::{delete_entry, list_entries, submit_entry};
 pub use production_handlers::submit_production;
 
 /// Liveness/readiness probe used by docker-compose and deployment healthchecks.

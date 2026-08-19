@@ -102,6 +102,11 @@ export const api = {
       body: JSON.stringify(input),
     }),
 
+  deleteEntry: (exploitationId: string, entryId: string) =>
+    request<void>(`/exploitations/${exploitationId}/entries/${entryId}`, {
+      method: "DELETE",
+    }),
+
   submitProduction: (exploitationId: string, input: CreateProductionInput) =>
     request<Production>(`/exploitations/${exploitationId}/production`, {
       method: "POST",

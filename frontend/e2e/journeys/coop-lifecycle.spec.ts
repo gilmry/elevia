@@ -92,10 +92,11 @@ test("cooperative admin onboards a member, who declares costs and production", a
     await page.reload();
     const historyRow = page.locator("tr", { hasText: productName });
     await expect(historyRow).toBeVisible();
-    // Last cell = Coût - scoped to that column, not a loose text search,
-    // since the product's random suffix can itself contain "150". The
-    // backend renders the decimal with its own precision, so match loosely.
-    await expect(historyRow.getByRole("cell").last()).toHaveText(/^150(\.\d+)? FCFA$/);
+    // Coût column (Mois, Produit, Qté, Coût, then the delete button cell) -
+    // scoped to that column, not a loose text search, since the product's
+    // random suffix can itself contain "150". The backend renders the
+    // decimal with its own precision, so match loosely.
+    await expect(historyRow.getByRole("cell").nth(3)).toHaveText(/^150(\.\d+)? FCFA$/);
   });
 
   await test.step("member declares monthly production", async () => {
