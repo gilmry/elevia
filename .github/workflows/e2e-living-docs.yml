@@ -41,7 +41,11 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: frontend
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
+        # apt (via --with-deps) occasionally hangs on the Azure ubuntu mirror
+        # on GitHub-hosted runners; retry once instead of burning the whole
+        # job timeout on a single stuck attempt.
+        run: npx playwright install --with-deps chromium || npx playwright install --with-deps chromium
 
       - name: Start dev stack (postgres + backend + frontend)
         run: docker compose --profile dev up --build -d
