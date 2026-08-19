@@ -17,5 +17,9 @@ pub fn internal_error() -> HttpResponse {
     HttpResponse::InternalServerError().json(json!({ "error": "internal error" }))
 }
 
+pub fn not_found(message: &str) -> HttpResponse {
+    HttpResponse::NotFound().json(json!({ "error": message }))
+}
+
 pub const FORBIDDEN_EXPLOITATION: &str = "access denied: resource belongs to another exploitation";
 pub const FORBIDDEN_ADMIN: &str = "admin role required";

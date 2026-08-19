@@ -30,6 +30,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             web::get().to(handlers::list_entries),
         )
         .route(
+            "/exploitations/{id}/entries/{entry_id}",
+            web::delete().to(handlers::delete_entry),
+        )
+        .route(
             "/exploitations/{id}/production",
             web::post().to(handlers::submit_production),
         )

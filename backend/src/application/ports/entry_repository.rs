@@ -21,6 +21,10 @@ pub trait EntryRepository: Send + Sync {
 
     async fn list_by_exploitation(&self, exploitation_id: Uuid) -> Result<Vec<Entry>, RepoError>;
 
+    /// Deletes the entry if it belongs to `exploitation_id` - returns whether a row
+    /// was actually deleted (false if the id doesn't exist or belongs to someone else).
+    async fn delete(&self, id: Uuid, exploitation_id: Uuid) -> Result<bool, RepoError>;
+
     /// Total cost per month for one exploitation, oldest first.
     async fn monthly_cost_totals(
         &self,

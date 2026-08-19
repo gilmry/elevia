@@ -48,6 +48,15 @@ impl EntryRepository for PostgresEntryRepository {
         .map_err(Into::into)
     }
 
+    async fn delete(&self, id: Uuid, exploitation_id: Uuid) -> Result<bool, RepoError> {
+        let result = sqlx::query("DELETE FROM entries WHERE id = $1 AND exploitation_id = $2")
+            .bind(id)
+            .bind(exploitation_id)
+            .execute(&self.pool)
+            .await?;
+        Ok(result.rows_affected() > 0)
+    }
+
     async fn monthly_cost_totals(
         &self,
         exploitation_id: Uuid,

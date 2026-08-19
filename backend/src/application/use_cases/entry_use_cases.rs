@@ -13,6 +13,8 @@ pub enum EntryError {
     InvalidMonth(String),
     #[error("unknown product")]
     UnknownProduct,
+    #[error("entry not found")]
+    NotFound,
     #[error("internal error: {0}")]
     Internal(#[from] RepoError),
 }
@@ -72,5 +74,17 @@ impl EntryUseCases {
             .list_by_exploitation(exploitation_id)
             .await?;
         Ok(entries.into_iter().map(Into::into).collect())
+    }
+
+    pub async fn delete_entry(
+        &self,
+        exploitation_id: Uuid,
+        entry_id: Uuid,
+    ) -> Result<(), EntryError> {
+        if self.entry_repo.delete(entry_id, exploitation_id).await? {
+            Ok(())
+        } else {
+            Err(EntryError::NotFound)
+        }
     }
 }

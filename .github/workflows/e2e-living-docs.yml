@@ -41,10 +41,12 @@ jobs:
 
       - name: Install Playwright browsers
         working-directory: frontend
-        timeout-minutes: 5
-        # apt (via --with-deps) occasionally hangs on the Azure ubuntu mirror
-        # on GitHub-hosted runners; retry once instead of burning the whole
-        # job timeout on a single stuck attempt.
+        # apt (via --with-deps) occasionally hangs or crawls on the Azure
+        # ubuntu mirror on GitHub-hosted runners - 10 min covers a genuinely
+        # slow-but-progressing mirror (seen: 21MB of font packages taking
+        # several minutes) without burning the whole 30 min job budget on a
+        # truly stuck attempt. Retry once instead of failing outright.
+        timeout-minutes: 10
         run: npx playwright install --with-deps chromium || npx playwright install --with-deps chromium
 
       - name: Start dev stack (postgres + backend + frontend)
