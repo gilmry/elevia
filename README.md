@@ -103,10 +103,13 @@ Minimum 8 caractères des deux côtés (comptés, pas en octets).
 
 Chaque exploitation peut télécharger ses données (bouton « Exporter en
 Excel » sur la page Coûts, `GET /exploitations/{id}/export.xlsx`) : un
-fichier `.xlsx` avec une ligne par mois, une colonne par intrant utilisé,
-et les colonnes de production (nom, quantité produite, quantité vendue,
-prix, marge estimée). Pensé pour retomber sur ses pieds face à un tableur
-Excel déjà tenu à la main - même structure, sans ressaisie.
+fichier `.xlsx` à trois onglets - **Coûts** (une ligne par saisie brute :
+mois, produit, quantité, coût), **Production** (une ligne par mois : nom,
+quantité produite/vendue, prix, coût total, marge estimée, coût/unité
+produite), et **Tableau de bord** (4 graphiques Excel natifs : évolution
+du coût total, marge, coût/unité produite, répartition des coûts par
+intrant). Pensé pour retomber sur ses pieds face à un tableur Excel déjà
+tenu à la main - même logique, sans ressaisie.
 
 ## Connecter Claude (MCP)
 
