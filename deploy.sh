@@ -12,6 +12,13 @@ CRON_SCHEDULE="${CRON_SCHEDULE:-*/5 * * * *}"
 CRON_MARKER="elevia-auto-deploy"
 LOG_FILE="$REPO_DIR/deploy.log"
 LOCK_FILE="$REPO_DIR/.deploy.lock"
+# Révision effectivement déployée avec succès la dernière fois - distinct de
+# `git rev-parse main`, qui avance dès le merge, avant même de savoir si le
+# build Docker a marché. Sans ce fichier, un build cassé (registre injoignable,
+# etc.) laisse local_rev = remote_rev pour de bon : le tick suivant voit "rien
+# n'a changé" + les anciens conteneurs encore up, et abandonne pour toujours
+# sans jamais retenter, jusqu'au prochain commit.
+DEPLOYED_REV_FILE="$REPO_DIR/.deployed_rev"
 
 log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*" >> "$LOG_FILE"; }
 
@@ -25,16 +32,18 @@ run_deploy() {
   local_rev="$(git rev-parse main)"
   remote_rev="$(git rev-parse origin/main)"
   running="$(docker compose --profile prod ps --status running -q 2>/dev/null)"
+  deployed_rev="$(cat "$DEPLOYED_REV_FILE" 2>/dev/null || true)"
 
-  # Rien à faire seulement si main n'a pas bougé ET que prod tourne déjà -
-  # sinon (premier run après clone, ou prod arrêtée manuellement) on déploie
-  # même sans nouveau commit, pour que l'état voulu (prod up) soit garanti.
-  if [ "$local_rev" = "$remote_rev" ] && [ -n "$running" ]; then
+  # Rien à faire seulement si origin/main est déjà la révision qu'on a
+  # *effectivement déployée avec succès* la dernière fois, et que prod tourne
+  # encore - sinon (premier run, prod arrêtée manuellement, ou dernier build
+  # en échec) on (re)déploie, même sans nouveau commit depuis le dernier essai.
+  if [ "$deployed_rev" = "$remote_rev" ] && [ -n "$running" ]; then
     exit 0
   fi
 
   if [ "$local_rev" = "$remote_rev" ]; then
-    log "prod non démarrée, déploiement initial ($remote_rev)"
+    log "prod non déployée sur $remote_rev, déploiement"
   else
     log "nouveau commit sur main ($local_rev -> $remote_rev), déploiement"
   fi
@@ -46,9 +55,10 @@ run_deploy() {
 
   if docker compose --profile prod up -d --build >> "$LOG_FILE" 2>&1; then
     log "déploiement réussi ($remote_rev)"
+    echo "$remote_rev" > "$DEPLOYED_REV_FILE"
     docker image prune -f >> "$LOG_FILE" 2>&1
   else
-    log "échec du déploiement ($remote_rev), voir logs ci-dessus"
+    log "échec du déploiement ($remote_rev), voir logs ci-dessus - nouvelle tentative au prochain tick"
     exit 1
   fi
 }
