@@ -11,12 +11,20 @@ en local via Docker Compose.
 
 ## Statut
 
-Backend (modèle de données, endpoints v1, isolation par exploitation, test
-BDD d'isolation) et frontend (connexion, saisie coûts/production,
-dashboards, backoffice admin, queue offline) sont en place. Reste à
-valider : un passage `docker compose up` de bout en bout et le test BDD
-`cargo test --test bdd` (nécessitent Docker, non exécutés dans l'environnement
-de développement de ce dépôt).
+En production sur https://elevia.ecosolva.org, déployée automatiquement à
+chaque merge sur `main` (voir [Déploiement automatique](#déploiement-automatique-gitops)).
+
+- **Backend** : modèle de données, endpoints v1, isolation par exploitation
+  (test BDD dédié), changement de mot de passe (self-service + reset admin),
+  serveur MCP en lecture seule, serveur OAuth 2.1 + PKCE auto-hébergé pour
+  les clients MCP.
+- **Frontend** : connexion, saisie coûts/production, dashboards individuels
+  et coopérative, backoffice admin (exploitations, produits, reset mot de
+  passe), page « Mon compte », queue offline (PWA installable), mentions
+  légales.
+- **Tests** : suite Playwright de bout en bout (voir [Tests end-to-end](#tests-end-to-end))
+  tournant en CI à chaque push sur `main` ; test BDD d'isolation par
+  exploitation (`cargo test --test bdd`, nécessite Docker/testcontainers).
 
 ## Structure du projet
 
@@ -28,7 +36,8 @@ elevia/
 │   ├── src/
 │   │   ├── domain/            # entités et logique métier pures
 │   │   ├── application/       # ports (traits repository) + use cases + DTOs
-│   │   └── infrastructure/    # implémentations SQLx, handlers HTTP, routes
+│   │   └── infrastructure/    # SQLx, handlers HTTP/routes, serveur MCP (web/mcp.rs)
+│   │                          # et serveur OAuth 2.1 + PKCE (web/oauth.rs)
 │   ├── migrations/            # migrations SQL (SQLx)
 │   └── tests/                 # tests BDD (cucumber-rs), dont le test d'isolation
 └── frontend/                   # Svelte + Astro, PWA offline-first
@@ -77,6 +86,17 @@ variables d'environnement `ADMIN_EMAIL` / `ADMIN_PASSWORD` (voir
 `.env.example` - à changer avant tout déploiement réel). Une fois connecté
 avec ce compte, créer les comptes des exploitations via le backoffice admin
 (`POST /admin/exploitations`) plutôt que de réutiliser ces identifiants.
+
+### Mots de passe
+
+- **Self-service** : chaque compte (admin ou exploitation) change son propre
+  mot de passe depuis la page « Mon compte » (ancien mot de passe requis),
+  `POST /auth/change-password`.
+- **Compte oublié** : un admin réinitialise le mot de passe d'une
+  exploitation depuis la liste des exploitations, sans connaître l'ancien -
+  `POST /admin/exploitations/{id}/reset-password`.
+
+Minimum 8 caractères des deux côtés (comptés, pas en octets).
 
 ## Connecter Claude (MCP)
 
