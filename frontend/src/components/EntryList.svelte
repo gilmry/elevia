@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { api, ApiError } from "../lib/api";
   import { requireAuth } from "../lib/auth";
+  import { onEntriesChanged } from "../lib/events";
   import { CURRENCY_SYMBOL, formatAmount, formatQuantity } from "../lib/format";
   import type { Entry, Product } from "../lib/types";
 
@@ -33,6 +34,7 @@
     if (!user || !user.exploitation_id) return;
     exploitationId = user.exploitation_id;
     load();
+    return onEntriesChanged(load);
   });
 
   async function removeEntry(entry: Entry) {

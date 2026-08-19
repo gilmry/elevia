@@ -89,7 +89,6 @@ test("a cost entry submitted offline is queued locally, then synced on reconnect
   });
 
   await test.step("the synced entry now shows up in the member's history", async () => {
-    await page.reload();
     const historyRow = page.locator("tr", { hasText: productName });
     await expect(historyRow).toBeVisible();
     // Coût column (Mois, Produit, Qté, Coût, then the delete button cell) -

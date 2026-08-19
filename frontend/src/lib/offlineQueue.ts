@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import { api, OfflineError } from "./api";
+import { notifyEntriesChanged } from "./events";
 import type { CreateEntryInput, CreateProductionInput } from "./types";
 
 interface QueuedEntry {
@@ -94,6 +95,9 @@ export async function flushQueue(): Promise<void> {
         }
         if (item.id !== undefined) {
           await db.delete("queue", item.id);
+        }
+        if (item.kind === "entry") {
+          notifyEntriesChanged();
         }
       } catch (err) {
         if (err instanceof OfflineError) {
