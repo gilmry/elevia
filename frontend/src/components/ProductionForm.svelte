@@ -3,6 +3,7 @@
   import { api, ApiError, OfflineError } from "../lib/api";
   import { requireAuth } from "../lib/auth";
   import { queueProduction } from "../lib/offlineQueue";
+  import { CURRENCY_SYMBOL } from "../lib/format";
 
   function currentMonth(): string {
     const now = new Date();
@@ -74,7 +75,7 @@
     <input type="text" bind:value={unite} required placeholder="ex: tonnes" />
   </label>
   <label>
-    Prix de vente unitaire (€, optionnel)
+    Prix de vente unitaire ({CURRENCY_SYMBOL}, optionnel)
     <input type="number" step="0.01" min="0" bind:value={prixUnitaireVente} inputmode="decimal" />
   </label>
   <label>

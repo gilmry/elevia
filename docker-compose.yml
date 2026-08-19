@@ -143,6 +143,7 @@ services:
       dockerfile: Dockerfile
       args:
         PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.org}
+        PUBLIC_CURRENCY_SYMBOL: ${PUBLIC_CURRENCY_SYMBOL:-FCFA}
     container_name: elevia-frontend
     restart: unless-stopped
     profiles: ["prod"]
@@ -166,6 +167,7 @@ services:
     profiles: ["dev"]
     environment:
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8080}
+      PUBLIC_CURRENCY_SYMBOL: ${PUBLIC_CURRENCY_SYMBOL:-FCFA}
     ports:
       - "${FRONTEND_PORT:-4321}:4321"
     volumes:

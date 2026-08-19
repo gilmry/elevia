@@ -3,6 +3,7 @@
   import { api, ApiError, OfflineError } from "../lib/api";
   import { requireAuth } from "../lib/auth";
   import { queueEntry } from "../lib/offlineQueue";
+  import { CURRENCY_SYMBOL } from "../lib/format";
   import type { Product } from "../lib/types";
 
   function currentMonth(): string {
@@ -92,7 +93,7 @@
       />
     </label>
     <label>
-      Coût (€)
+      Coût ({CURRENCY_SYMBOL})
       <input type="number" step="0.01" min="0" bind:value={cout} required inputmode="decimal" />
     </label>
     <label>
