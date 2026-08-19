@@ -3,6 +3,7 @@ mod coop;
 mod dashboard;
 mod entry;
 mod exploitation;
+mod export;
 pub mod month;
 mod oauth;
 mod product;
@@ -13,6 +14,7 @@ pub use coop::{CoopDashboardDto, ProductNeedDto, QuartilesDto};
 pub use dashboard::{ExploitationDashboardDto, MonthlyStatsDto};
 pub use entry::{CreateEntryDto, EntryResponseDto};
 pub use exploitation::{CreateExploitationDto, ExploitationResponseDto, ExploitationStatusDto};
+pub use export::{ExportSummaryDto, MonthlyExportRowDto};
 pub use oauth::{
     AuthorizeFormDto, AuthorizeParams, RegisterClientDto, RegisterClientResponseDto,
     TokenRequestDto, TokenResponseDto,

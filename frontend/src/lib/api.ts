@@ -116,6 +116,25 @@ export const api = {
   getDashboard: (exploitationId: string) =>
     request<ExploitationDashboard>(`/exploitations/${exploitationId}/dashboard`),
 
+  // Binary response, not JSON - can't go through request<T>() above.
+  exportMonthlyXlsx: async (exploitationId: string): Promise<{ blob: Blob; filename: string }> => {
+    const token = getToken();
+    let response: Response;
+    try {
+      response = await fetch(`${API_URL}/exploitations/${exploitationId}/export.xlsx`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+    } catch {
+      throw new OfflineError();
+    }
+    if (!response.ok) {
+      throw new ApiError(response.status, `l'export a échoué (${response.status})`);
+    }
+    const disposition = response.headers.get("Content-Disposition") ?? "";
+    const match = /filename="([^"]+)"/.exec(disposition);
+    return { blob: await response.blob(), filename: match?.[1] ?? "export.xlsx" };
+  },
+
   getCoopDashboard: () => request<CoopDashboard>("/coop/dashboard"),
 
   createExploitation: (input: CreateExploitationInput) =>

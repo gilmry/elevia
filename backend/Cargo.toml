@@ -2,7 +2,7 @@
 name = "elevia-api"
 version = "0.1.0"
 edition = "2021"
-license = "AGPL-3.0-or-later"
+license = "MIT"
 
 [dependencies]
 # Web framework
@@ -41,6 +41,7 @@ uuid = { version = "1.23", features = ["serde", "v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 async-trait = "0.1"
 thiserror = "2.0"
+rust_xlsxwriter = { version = "0.98.2", features = ["rust_decimal"] }
 
 [dev-dependencies]
 rust_decimal_macros = "1.40"

@@ -19,7 +19,8 @@ chaque merge sur `main` (voir [Déploiement automatique](#déploiement-automatiq
   serveur MCP en lecture seule, serveur OAuth 2.1 + PKCE auto-hébergé pour
   les clients MCP.
 - **Frontend** : connexion, saisie coûts/production, dashboards individuels
-  et coopérative, backoffice admin (exploitations, produits, reset mot de
+  et coopérative, export Excel (une ligne par mois, une colonne par
+  intrant), backoffice admin (exploitations, produits, reset mot de
   passe), page « Mon compte », queue offline (PWA installable), mentions
   légales.
 - **Tests** : suite Playwright de bout en bout (voir [Tests end-to-end](#tests-end-to-end))
@@ -97,6 +98,15 @@ avec ce compte, créer les comptes des exploitations via le backoffice admin
   `POST /admin/exploitations/{id}/reset-password`.
 
 Minimum 8 caractères des deux côtés (comptés, pas en octets).
+
+### Export Excel
+
+Chaque exploitation peut télécharger ses données (bouton « Exporter en
+Excel » sur la page Coûts, `GET /exploitations/{id}/export.xlsx`) : un
+fichier `.xlsx` avec une ligne par mois, une colonne par intrant utilisé,
+et les colonnes de production (nom, quantité produite, quantité vendue,
+prix, marge estimée). Pensé pour retomber sur ses pieds face à un tableur
+Excel déjà tenu à la main - même structure, sans ressaisie.
 
 ## Connecter Claude (MCP)
 

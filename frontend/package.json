@@ -2,7 +2,7 @@
   "name": "elevia-frontend",
   "type": "module",
   "version": "0.1.0",
-  "license": "AGPL-3.0-or-later",
+  "license": "MIT",
   "scripts": {
     "dev": "astro dev --host 0.0.0.0",
     "build": "astro check && astro build",

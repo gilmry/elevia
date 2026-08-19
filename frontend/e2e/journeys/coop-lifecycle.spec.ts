@@ -122,6 +122,17 @@ test("cooperative admin onboards a member, who declares costs and production", a
     await expect(producedStat.locator(".value")).toHaveText(/^10(\.\d+)? tonnes$/);
   });
 
+  await test.step("member exports their monthly data to Excel", async () => {
+    await page.getByRole("link", { name: "Coûts" }).click();
+    await expect(page).toHaveURL(/\/entries$/);
+
+    const downloadPromise = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Exporter en Excel" }).click();
+    const download = await downloadPromise;
+
+    expect(download.suggestedFilename()).toMatch(/couts-production\.xlsx$/);
+  });
+
   await test.step("member signs out", async () => {
     await logout(page);
   });
