@@ -22,7 +22,9 @@
 # Deploy runtime artifacts
 /deploy.log
 /.deploy.lock
+/.deployed_rev
 
 # Deploy runtime artifacts
 /deploy/deploy.log
 /deploy/.deploy.lock
+/deploy/.deployed_rev
