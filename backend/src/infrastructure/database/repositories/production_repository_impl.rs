@@ -22,9 +22,8 @@ impl ProductionRepository for PostgresProductionRepository {
         sqlx::query_as::<_, Production>(
             "INSERT INTO production (exploitation_id, mois, nom, quantite_produite, quantite_vendue, unite, prix_unitaire_vente)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
-             ON CONFLICT (exploitation_id, mois)
-             DO UPDATE SET nom = EXCLUDED.nom,
-                            quantite_produite = EXCLUDED.quantite_produite,
+             ON CONFLICT (exploitation_id, mois, nom)
+             DO UPDATE SET quantite_produite = EXCLUDED.quantite_produite,
                             quantite_vendue = EXCLUDED.quantite_vendue,
                             unite = EXCLUDED.unite,
                             prix_unitaire_vente = EXCLUDED.prix_unitaire_vente

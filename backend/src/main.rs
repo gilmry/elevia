@@ -59,6 +59,7 @@ async fn main() -> std::io::Result<()> {
         dashboard_use_cases: Arc::new(DashboardUseCases::new(
             entry_repo.clone(),
             production_repo.clone(),
+            product_repo.clone(),
         )),
         admin_use_cases: Arc::new(AdminUseCases::new(
             exploitation_repo.clone(),

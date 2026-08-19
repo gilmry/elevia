@@ -98,8 +98,16 @@ impl ExportUseCases {
         }
         cost_rows.sort_by(|a, b| a.mois.cmp(&b.mois).then(a.product_nom.cmp(&b.product_nom)));
 
-        let productions_by_month: HashMap<NaiveDate, Production> =
-            productions.into_iter().map(|p| (p.mois, p)).collect();
+        // A farm can produce several distinct things the same month (eggs
+        // and meat, say) - group by month rather than assuming at most one,
+        // so each becomes its own row instead of silently overwriting.
+        let mut productions_by_month: BTreeMap<NaiveDate, Vec<Production>> = BTreeMap::new();
+        for production in productions {
+            productions_by_month
+                .entry(production.mois)
+                .or_default()
+                .push(production);
+        }
 
         // Union of months from both costs and production: a month can have
         // production declared with no costs entered yet, or vice versa.
@@ -111,31 +119,47 @@ impl ExportUseCases {
         }
         all_months.sort();
 
-        let production_rows = all_months
-            .into_iter()
-            .map(|mois| {
-                let total_cost = total_cost_by_month
-                    .get(&mois)
-                    .copied()
-                    .unwrap_or(Decimal::ZERO);
-                let production = productions_by_month.get(&mois);
-
-                MonthlyProductionRowDto {
-                    mois: format_month(mois),
-                    nom: production.map(|p| p.nom.clone()),
-                    quantite_produite: production.map(|p| p.quantite_produite),
-                    quantite_vendue: production.and_then(|p| p.quantite_vendue),
-                    unite: production.map(|p| p.unite.clone()),
-                    prix_unitaire_vente: production.and_then(|p| p.prix_unitaire_vente),
-                    total_cost,
-                    estimated_margin: production.and_then(|p| {
-                        estimated_margin(total_cost, p.quantite_vendue, p.prix_unitaire_vente)
-                    }),
-                    cost_per_unit: production
-                        .and_then(|p| cost_per_unit(total_cost, p.quantite_produite)),
+        let mut production_rows = Vec::new();
+        for mois in all_months {
+            let total_cost = total_cost_by_month
+                .get(&mois)
+                .copied()
+                .unwrap_or(Decimal::ZERO);
+            match productions_by_month.get(&mois) {
+                Some(productions) => {
+                    for p in productions {
+                        production_rows.push(MonthlyProductionRowDto {
+                            mois: format_month(mois),
+                            nom: Some(p.nom.clone()),
+                            quantite_produite: Some(p.quantite_produite),
+                            quantite_vendue: p.quantite_vendue,
+                            unite: Some(p.unite.clone()),
+                            prix_unitaire_vente: p.prix_unitaire_vente,
+                            total_cost,
+                            estimated_margin: estimated_margin(
+                                total_cost,
+                                p.quantite_vendue,
+                                p.prix_unitaire_vente,
+                            ),
+                            cost_per_unit: cost_per_unit(total_cost, p.quantite_produite),
+                        });
+                    }
                 }
-            })
-            .collect();
+                // Costs entered but nothing produced yet that month - still
+                // worth a row so the month isn't silently missing.
+                None => production_rows.push(MonthlyProductionRowDto {
+                    mois: format_month(mois),
+                    nom: None,
+                    quantite_produite: None,
+                    quantite_vendue: None,
+                    unite: None,
+                    prix_unitaire_vente: None,
+                    total_cost,
+                    estimated_margin: None,
+                    cost_per_unit: None,
+                }),
+            }
+        }
 
         Ok(ExportSummaryDto {
             exploitation_nom: exploitation.nom,

@@ -11,7 +11,7 @@ mod production;
 
 pub use auth::{ChangePasswordRequest, Claims, LoginRequest, LoginResponse, ResetPasswordRequest};
 pub use coop::{CoopDashboardDto, ProductNeedDto, QuartilesDto};
-pub use dashboard::{ExploitationDashboardDto, MonthlyStatsDto};
+pub use dashboard::{ExploitationDashboardDto, MonthlyStatsDto, ProductionStatsDto};
 pub use entry::{CreateEntryDto, EntryResponseDto};
 pub use exploitation::{CreateExploitationDto, ExploitationResponseDto, ExploitationStatusDto};
 pub use export::{CostRowDto, ExportSummaryDto, MonthlyProductionRowDto};
