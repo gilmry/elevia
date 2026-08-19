@@ -78,7 +78,7 @@ impl CoopUseCases {
             }
             if let Some(margin) = estimated_margin(
                 total_cost,
-                production.quantite_produite,
+                production.quantite_vendue,
                 production.prix_unitaire_vente,
             ) {
                 margins.push(margin);

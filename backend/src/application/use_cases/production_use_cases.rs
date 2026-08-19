@@ -36,7 +36,9 @@ impl ProductionUseCases {
             .upsert(NewProduction {
                 exploitation_id,
                 mois,
+                nom: dto.nom,
                 quantite_produite: dto.quantite_produite,
+                quantite_vendue: dto.quantite_vendue,
                 unite: dto.unite,
                 prix_unitaire_vente: dto.prix_unitaire_vente,
             })

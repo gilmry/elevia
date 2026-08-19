@@ -60,13 +60,16 @@ impl DashboardUseCases {
                 let cost_per_unit_value =
                     quantity_produced.and_then(|q| cost_per_unit(total_cost, q));
                 let margin = production.as_ref().and_then(|p| {
-                    estimated_margin(total_cost, p.quantite_produite, p.prix_unitaire_vente)
+                    estimated_margin(total_cost, p.quantite_vendue, p.prix_unitaire_vente)
                 });
 
                 MonthlyStatsDto {
                     mois: format_month(mois),
                     total_cost,
+                    nom: production.as_ref().map(|p| p.nom.clone()),
                     quantity_produced,
+                    quantity_sold: production.as_ref().and_then(|p| p.quantite_vendue),
+                    unite: production.as_ref().map(|p| p.unite.clone()),
                     cost_per_unit: cost_per_unit_value,
                     estimated_margin: margin,
                 }

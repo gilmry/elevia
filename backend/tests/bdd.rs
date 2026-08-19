@@ -291,7 +291,9 @@ async fn given_month_submitted(world: &mut IsolationWorld, nom: String) {
         .bearer_auth(&token)
         .json(&json!({
             "mois": mois,
+            "nom": "Blé",
             "quantite_produite": "40",
+            "quantite_vendue": "40",
             "unite": "tonnes",
             "prix_unitaire_vente": "180",
         }))
