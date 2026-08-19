@@ -82,7 +82,7 @@ test("cooperative admin onboards a member, who declares costs and production", a
   await test.step("member declares a monthly input cost", async () => {
     await page.getByLabel("Produit / intrant").selectOption({ label: `${productName} (kg)` });
     await page.getByLabel("Quantité").fill("20");
-    await page.getByLabel("Coût (FCFA)").fill("150");
+    await page.getByLabel("Coût total (FCFA)").fill("150");
     await page.getByLabel("Mois").fill(month);
     await page.getByRole("button", { name: "Enregistrer" }).click();
 

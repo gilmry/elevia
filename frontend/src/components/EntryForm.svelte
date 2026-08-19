@@ -16,11 +16,24 @@
   let productId = "";
   let mois = currentMonth();
   let quantite = "";
+  let prixUnitaire = "";
   let cout = "";
   let message = "";
   let error = "";
   let loading = false;
   let loadingProducts = true;
+
+  // Le total (coût) est ce que le backend stocke, mais demander directement
+  // un total pousse à confondre prix unitaire et montant payé (ex: "25" pour
+  // 25kg lu comme 25 FCFA/kg plutôt que 25 FCFA au total). Le prix unitaire
+  // est optionnel et calcule le total à la place de l'utilisateur ; il reste
+  // modifiable à la main pour le cas où seul le total est connu (ex: reçu).
+  $: if (quantite && prixUnitaire) {
+    const computed = Number(quantite) * Number(prixUnitaire);
+    if (!Number.isNaN(computed)) {
+      cout = computed.toFixed(2);
+    }
+  }
 
   onMount(async () => {
     const user = requireAuth("exploitation");
@@ -48,12 +61,14 @@
       await api.submitEntry(exploitationId, input);
       message = "Coût enregistré.";
       quantite = "";
+      prixUnitaire = "";
       cout = "";
     } catch (err) {
       if (err instanceof OfflineError) {
         await queueEntry(exploitationId, input);
         message = "Hors ligne : enregistré localement, sera envoyé à la reconnexion.";
         quantite = "";
+        prixUnitaire = "";
         cout = "";
       } else if (err instanceof ApiError) {
         error = err.message;
@@ -93,7 +108,18 @@
       />
     </label>
     <label>
-      Coût ({CURRENCY_SYMBOL})
+      Prix unitaire ({CURRENCY_SYMBOL}, optionnel)
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        bind:value={prixUnitaire}
+        inputmode="decimal"
+        placeholder="ex: prix au kg"
+      />
+    </label>
+    <label>
+      Coût total ({CURRENCY_SYMBOL})
       <input type="number" step="0.01" min="0" bind:value={cout} required inputmode="decimal" />
     </label>
     <label>

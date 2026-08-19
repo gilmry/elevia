@@ -53,7 +53,7 @@ test("a cost entry submitted offline is queued locally, then synced on reconnect
 
     await page.getByLabel("Produit / intrant").selectOption({ label: `${productName} (L)` });
     await page.getByLabel("Quantité").fill("40");
-    await page.getByLabel("Coût (FCFA)").fill("80");
+    await page.getByLabel("Coût total (FCFA)").fill("80");
     await page.getByLabel("Mois").fill(currentMonth());
     await page.getByRole("button", { name: "Enregistrer" }).click();
 
