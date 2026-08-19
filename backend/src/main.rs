@@ -5,7 +5,7 @@ use actix_web::{web, App, HttpServer};
 
 use elevia_api::application::use_cases::{
     AdminUseCases, AuthUseCases, CatalogUseCases, CoopUseCases, DashboardUseCases, EntryUseCases,
-    OAuthUseCases, ProductionUseCases,
+    ExportUseCases, OAuthUseCases, ProductionUseCases,
 };
 use elevia_api::infrastructure::database::create_pool;
 use elevia_api::infrastructure::database::repositories::{
@@ -61,24 +61,30 @@ async fn main() -> std::io::Result<()> {
             production_repo.clone(),
         )),
         admin_use_cases: Arc::new(AdminUseCases::new(
-            exploitation_repo,
+            exploitation_repo.clone(),
             user_repo.clone(),
             product_repo.clone(),
             entry_repo.clone(),
             production_repo.clone(),
         )),
         coop_use_cases: Arc::new(CoopUseCases::new(
-            entry_repo,
-            production_repo,
+            entry_repo.clone(),
+            production_repo.clone(),
             product_repo.clone(),
         )),
-        catalog_use_cases: Arc::new(CatalogUseCases::new(product_repo)),
+        catalog_use_cases: Arc::new(CatalogUseCases::new(product_repo.clone())),
         oauth_use_cases: Arc::new(OAuthUseCases::new(
             oauth_client_repo,
             oauth_code_repo,
             oauth_refresh_repo,
             user_repo,
             auth_use_cases,
+        )),
+        export_use_cases: Arc::new(ExportUseCases::new(
+            exploitation_repo,
+            entry_repo,
+            production_repo,
+            product_repo,
         )),
     });
 

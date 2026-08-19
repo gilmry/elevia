@@ -12,6 +12,8 @@
   let loading = true;
   let error = "";
   let deletingId: string | null = null;
+  let exporting = false;
+  let exportError = "";
 
   async function load() {
     loading = true;
@@ -52,9 +54,38 @@
       deletingId = null;
     }
   }
+
+  async function downloadExport() {
+    exporting = true;
+    exportError = "";
+    try {
+      const { blob, filename } = await api.exportMonthlyXlsx(exploitationId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      exportError = err instanceof ApiError ? err.message : "Impossible de générer l'export.";
+    } finally {
+      exporting = false;
+    }
+  }
 </script>
 
 <h2>Historique</h2>
+
+{#if !loading && !error}
+  <button class="secondary" on:click={downloadExport} disabled={exporting}>
+    {exporting ? "Génération..." : "Exporter en Excel"}
+  </button>
+  {#if exportError}
+    <p class="error">{exportError}</p>
+  {/if}
+{/if}
 
 {#if loading}
   <p>Chargement...</p>

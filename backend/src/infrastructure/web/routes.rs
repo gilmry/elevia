@@ -42,6 +42,10 @@ pub fn configure_routes(cfg: &mut web::ServiceConfig) {
             web::get().to(handlers::exploitation_dashboard),
         )
         .route(
+            "/exploitations/{id}/export.xlsx",
+            web::get().to(handlers::export_monthly_xlsx),
+        )
+        .route(
             "/admin/exploitations",
             web::post().to(handlers::create_exploitation),
         )
