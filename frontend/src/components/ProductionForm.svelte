@@ -67,6 +67,11 @@
     Qu'est-ce qui a été produit ?
     <input type="text" bind:value={nom} required placeholder="ex: Œufs, Viande de poulet" />
   </label>
+  <p class="notice">
+    Une ferme peut produire plusieurs choses le même mois : un nom déjà
+    utilisé ce mois-ci met à jour cette ligne, un nom différent en ajoute
+    une nouvelle.
+  </p>
   <label>
     Quantité produite
     <input

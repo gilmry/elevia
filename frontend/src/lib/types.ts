@@ -51,20 +51,26 @@ export interface CreateProductionInput {
   prix_unitaire_vente: string | null;
 }
 
+export interface ProductionStats {
+  nom: string;
+  quantite_produite: string;
+  quantite_vendue: string | null;
+  unite: string;
+  prix_unitaire_vente: string | null;
+  cost_per_unit: string | null;
+  estimated_margin: string | null;
+}
+
 export interface MonthlyStats {
   mois: string;
   total_cost: string;
-  nom: string | null;
-  quantity_produced: string | null;
-  quantity_sold: string | null;
-  unite: string | null;
-  cost_per_unit: string | null;
-  estimated_margin: string | null;
+  productions: ProductionStats[];
 }
 
 export interface ExploitationDashboard {
   exploitation_id: string;
   monthly: MonthlyStats[];
+  totals_by_product: [string, string][];
 }
 
 export interface ProductNeed {
