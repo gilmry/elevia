@@ -7,7 +7,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::application::dto::month::format_month;
-use crate::application::dto::{ExportSummaryDto, MonthlyExportRowDto};
+use crate::application::dto::{CostRowDto, ExportSummaryDto, MonthlyProductionRowDto};
 use crate::application::ports::{
     EntryRepository, ExploitationRepository, ProductRepository, ProductionRepository, RepoError,
 };
@@ -44,9 +44,10 @@ impl ExportUseCases {
         }
     }
 
-    /// One row per month, one column per intrant actually used - the same shape
-    /// as the Excel sheet a farmer would keep by hand, so switching to Elevia
-    /// doesn't mean losing the format they're used to.
+    /// Costs and production are kept as two separate row sets - a cost entry
+    /// is submitted per product (several per month), production is a single
+    /// monthly declaration, so forcing both onto one "row per month" mixes
+    /// two different granularities under the same headers.
     pub async fn monthly_summary(
         &self,
         exploitation_id: Uuid,
@@ -69,28 +70,40 @@ impl ExportUseCases {
         let product_names: HashMap<Uuid, String> =
             products.into_iter().map(|p| (p.id, p.nom)).collect();
 
-        let mut months: BTreeMap<NaiveDate, BTreeMap<String, Decimal>> = BTreeMap::new();
-        let mut column_order: Vec<String> = Vec::new();
+        let mut cost_rows: Vec<CostRowDto> = Vec::with_capacity(entries.len());
+        let mut total_cost_by_month: BTreeMap<NaiveDate, Decimal> = BTreeMap::new();
+        let mut totals_by_product: Vec<(String, Decimal)> = Vec::new();
+
         for entry in &entries {
             let nom = product_names
                 .get(&entry.product_id)
                 .cloned()
                 .unwrap_or_else(|| "Produit supprimé".to_string());
-            if !column_order.contains(&nom) {
-                column_order.push(nom.clone());
-            }
-            months
+
+            cost_rows.push(CostRowDto {
+                mois: format_month(entry.mois),
+                product_nom: nom.clone(),
+                quantite: entry.quantite,
+                cout: entry.cout,
+            });
+
+            *total_cost_by_month
                 .entry(entry.mois)
-                .or_default()
-                .insert(nom, entry.cout);
+                .or_insert(Decimal::ZERO) += entry.cout;
+
+            match totals_by_product.iter_mut().find(|(n, _)| *n == nom) {
+                Some((_, total)) => *total += entry.cout,
+                None => totals_by_product.push((nom, entry.cout)),
+            }
         }
+        cost_rows.sort_by(|a, b| a.mois.cmp(&b.mois).then(a.product_nom.cmp(&b.product_nom)));
 
         let productions_by_month: HashMap<NaiveDate, Production> =
             productions.into_iter().map(|p| (p.mois, p)).collect();
 
-        // Union of months from both entries and production: a month can have
+        // Union of months from both costs and production: a month can have
         // production declared with no costs entered yet, or vice versa.
-        let mut all_months: Vec<NaiveDate> = months.keys().copied().collect();
+        let mut all_months: Vec<NaiveDate> = total_cost_by_month.keys().copied().collect();
         for mois in productions_by_month.keys() {
             if !all_months.contains(mois) {
                 all_months.push(*mois);
@@ -98,23 +111,23 @@ impl ExportUseCases {
         }
         all_months.sort();
 
-        let rows = all_months
+        let production_rows = all_months
             .into_iter()
             .map(|mois| {
-                let costs = months.get(&mois).cloned().unwrap_or_default();
-                let total_cost: Decimal = costs.values().copied().sum();
-                let costs_by_product = costs.into_iter().collect();
+                let total_cost = total_cost_by_month
+                    .get(&mois)
+                    .copied()
+                    .unwrap_or(Decimal::ZERO);
                 let production = productions_by_month.get(&mois);
 
-                MonthlyExportRowDto {
+                MonthlyProductionRowDto {
                     mois: format_month(mois),
-                    costs_by_product,
-                    total_cost,
-                    production_nom: production.map(|p| p.nom.clone()),
+                    nom: production.map(|p| p.nom.clone()),
                     quantite_produite: production.map(|p| p.quantite_produite),
                     quantite_vendue: production.and_then(|p| p.quantite_vendue),
                     unite: production.map(|p| p.unite.clone()),
                     prix_unitaire_vente: production.and_then(|p| p.prix_unitaire_vente),
+                    total_cost,
                     estimated_margin: production.and_then(|p| {
                         estimated_margin(total_cost, p.quantite_vendue, p.prix_unitaire_vente)
                     }),
@@ -126,8 +139,9 @@ impl ExportUseCases {
 
         Ok(ExportSummaryDto {
             exploitation_nom: exploitation.nom,
-            product_columns: column_order,
-            rows,
+            cost_rows,
+            production_rows,
+            totals_by_product,
         })
     }
 }

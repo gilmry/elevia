@@ -14,7 +14,7 @@ pub use coop::{CoopDashboardDto, ProductNeedDto, QuartilesDto};
 pub use dashboard::{ExploitationDashboardDto, MonthlyStatsDto};
 pub use entry::{CreateEntryDto, EntryResponseDto};
 pub use exploitation::{CreateExploitationDto, ExploitationResponseDto, ExploitationStatusDto};
-pub use export::{ExportSummaryDto, MonthlyExportRowDto};
+pub use export::{CostRowDto, ExportSummaryDto, MonthlyProductionRowDto};
 pub use oauth::{
     AuthorizeFormDto, AuthorizeParams, RegisterClientDto, RegisterClientResponseDto,
     TokenRequestDto, TokenResponseDto,
