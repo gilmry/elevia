@@ -10,14 +10,21 @@ pub fn cost_per_unit(total_cost: Decimal, quantity_produced: Decimal) -> Option<
     }
 }
 
-/// Marge estimée = (quantité produite * prix de vente unitaire) - total des coûts.
-/// `None` si aucun prix de vente n'a été renseigné pour ce mois.
+/// Marge estimée = (quantité **vendue** * prix de vente unitaire) - total des coûts.
+///
+/// Volontairement basée sur ce qui a été vendu, pas sur ce qui a été produit :
+/// tout ce qui est produit dans le mois n'est pas forcément vendu ce même
+/// mois (stock, vente différée, perte...), donc utiliser la quantité produite
+/// surestimerait systématiquement la marge dès qu'il reste du stock.
+/// `None` si la quantité vendue ou le prix de vente n'est pas renseigné.
 pub fn estimated_margin(
     total_cost: Decimal,
-    quantity_produced: Decimal,
+    quantity_sold: Option<Decimal>,
     unit_sale_price: Option<Decimal>,
 ) -> Option<Decimal> {
-    unit_sale_price.map(|price| (quantity_produced * price) - total_cost)
+    let quantity_sold = quantity_sold?;
+    let price = unit_sale_price?;
+    Some((quantity_sold * price) - total_cost)
 }
 
 #[cfg(test)]
@@ -37,13 +44,28 @@ mod tests {
 
     #[test]
     fn estimated_margin_is_none_without_a_sale_price() {
-        assert_eq!(estimated_margin(dec!(100), dec!(4), None), None);
+        assert_eq!(estimated_margin(dec!(100), Some(dec!(4)), None), None);
+    }
+
+    #[test]
+    fn estimated_margin_is_none_without_a_quantity_sold() {
+        assert_eq!(estimated_margin(dec!(100), None, Some(dec!(30))), None);
     }
 
     #[test]
     fn estimated_margin_subtracts_cost_from_revenue() {
         assert_eq!(
-            estimated_margin(dec!(100), dec!(4), Some(dec!(30))),
+            estimated_margin(dec!(100), Some(dec!(4)), Some(dec!(30))),
+            Some(dec!(20))
+        );
+    }
+
+    #[test]
+    fn estimated_margin_uses_quantity_sold_not_quantity_produced() {
+        // Produced 10 but only sold 4 - margin must reflect the 4 actually sold,
+        // not the 10 produced (the rest is stock, not revenue yet).
+        assert_eq!(
+            estimated_margin(dec!(100), Some(dec!(4)), Some(dec!(30))),
             Some(dec!(20))
         );
     }

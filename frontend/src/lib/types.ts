@@ -35,14 +35,18 @@ export interface Production {
   id: string;
   exploitation_id: string;
   mois: string;
+  nom: string;
   quantite_produite: string;
+  quantite_vendue: string | null;
   unite: string;
   prix_unitaire_vente: string | null;
 }
 
 export interface CreateProductionInput {
   mois: string;
+  nom: string;
   quantite_produite: string;
+  quantite_vendue: string | null;
   unite: string;
   prix_unitaire_vente: string | null;
 }
@@ -50,7 +54,10 @@ export interface CreateProductionInput {
 export interface MonthlyStats {
   mois: string;
   total_cost: string;
+  nom: string | null;
   quantity_produced: string | null;
+  quantity_sold: string | null;
+  unite: string | null;
   cost_per_unit: string | null;
   estimated_margin: string | null;
 }

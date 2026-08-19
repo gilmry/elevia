@@ -100,8 +100,10 @@ test("cooperative admin onboards a member, who declares costs and production", a
     await page.getByRole("link", { name: "Production" }).click();
     await expect(page).toHaveURL(/\/production$/);
 
+    await page.getByLabel("Qu'est-ce qui a été produit ?").fill("Blé");
     await page.getByLabel("Quantité produite").fill("10");
     await page.getByLabel("Unité").fill("tonnes");
+    await page.getByLabel("Quantité vendue").fill("10");
     await page.getByLabel("Prix de vente unitaire").fill("50");
     await page.getByLabel("Mois").fill(month);
     await page.getByRole("button", { name: "Enregistrer" }).click();
@@ -116,8 +118,8 @@ test("cooperative admin onboards a member, who declares costs and production", a
     const monthCard = page.locator(".card", { hasText: month });
     const costStat = monthCard.locator(".stat", { hasText: "Coût total" });
     await expect(costStat.locator(".value")).toHaveText(/^150(\.\d+)? FCFA$/);
-    const producedStat = monthCard.locator(".stat", { hasText: "Quantité produite" });
-    await expect(producedStat.locator(".value")).toHaveText(/^10(\.\d+)?$/);
+    const producedStat = monthCard.locator(".stat", { hasText: "Blé" });
+    await expect(producedStat.locator(".value")).toHaveText(/^10(\.\d+)? tonnes$/);
   });
 
   await test.step("member signs out", async () => {

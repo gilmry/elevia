@@ -20,17 +20,21 @@ impl PostgresProductionRepository {
 impl ProductionRepository for PostgresProductionRepository {
     async fn upsert(&self, new: NewProduction) -> Result<Production, RepoError> {
         sqlx::query_as::<_, Production>(
-            "INSERT INTO production (exploitation_id, mois, quantite_produite, unite, prix_unitaire_vente)
-             VALUES ($1, $2, $3, $4, $5)
+            "INSERT INTO production (exploitation_id, mois, nom, quantite_produite, quantite_vendue, unite, prix_unitaire_vente)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              ON CONFLICT (exploitation_id, mois)
-             DO UPDATE SET quantite_produite = EXCLUDED.quantite_produite,
+             DO UPDATE SET nom = EXCLUDED.nom,
+                            quantite_produite = EXCLUDED.quantite_produite,
+                            quantite_vendue = EXCLUDED.quantite_vendue,
                             unite = EXCLUDED.unite,
                             prix_unitaire_vente = EXCLUDED.prix_unitaire_vente
-             RETURNING id, exploitation_id, mois, quantite_produite, unite, prix_unitaire_vente, created_at",
+             RETURNING id, exploitation_id, mois, nom, quantite_produite, quantite_vendue, unite, prix_unitaire_vente, created_at",
         )
         .bind(new.exploitation_id)
         .bind(new.mois)
+        .bind(new.nom)
         .bind(new.quantite_produite)
+        .bind(new.quantite_vendue)
         .bind(new.unite)
         .bind(new.prix_unitaire_vente)
         .fetch_one(&self.pool)
@@ -43,7 +47,7 @@ impl ProductionRepository for PostgresProductionRepository {
         exploitation_id: Uuid,
     ) -> Result<Vec<Production>, RepoError> {
         sqlx::query_as::<_, Production>(
-            "SELECT id, exploitation_id, mois, quantite_produite, unite, prix_unitaire_vente, created_at
+            "SELECT id, exploitation_id, mois, nom, quantite_produite, quantite_vendue, unite, prix_unitaire_vente, created_at
              FROM production WHERE exploitation_id = $1 ORDER BY mois",
         )
         .bind(exploitation_id)
@@ -69,7 +73,7 @@ impl ProductionRepository for PostgresProductionRepository {
 
     async fn all_for_month(&self, mois: NaiveDate) -> Result<Vec<Production>, RepoError> {
         sqlx::query_as::<_, Production>(
-            "SELECT id, exploitation_id, mois, quantite_produite, unite, prix_unitaire_vente, created_at
+            "SELECT id, exploitation_id, mois, nom, quantite_produite, quantite_vendue, unite, prix_unitaire_vente, created_at
              FROM production WHERE mois = $1",
         )
         .bind(mois)

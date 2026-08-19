@@ -12,7 +12,9 @@
 
   let exploitationId = "";
   let mois = currentMonth();
+  let nom = "";
   let quantiteProduite = "";
+  let quantiteVendue = "";
   let unite = "";
   let prixUnitaireVente = "";
   let message = "";
@@ -33,7 +35,9 @@
 
     const input = {
       mois,
+      nom,
       quantite_produite: quantiteProduite,
+      quantite_vendue: quantiteVendue || null,
       unite,
       prix_unitaire_vente: prixUnitaireVente || null,
     };
@@ -60,6 +64,10 @@
 
 <form on:submit={submit}>
   <label>
+    Qu'est-ce qui a été produit ?
+    <input type="text" bind:value={nom} required placeholder="ex: Œufs, Viande de poulet" />
+  </label>
+  <label>
     Quantité produite
     <input
       type="number"
@@ -72,7 +80,18 @@
   </label>
   <label>
     Unité
-    <input type="text" bind:value={unite} required placeholder="ex: tonnes" />
+    <input type="text" bind:value={unite} required placeholder="ex: kg, litres, douzaines" />
+  </label>
+  <label>
+    Quantité vendue (optionnel)
+    <input
+      type="number"
+      step="0.001"
+      min="0"
+      bind:value={quantiteVendue}
+      inputmode="decimal"
+      placeholder="peut différer de la quantité produite"
+    />
   </label>
   <label>
     Prix de vente unitaire ({CURRENCY_SYMBOL}, optionnel)

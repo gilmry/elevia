@@ -8,7 +8,9 @@ use uuid::Uuid;
 pub struct NewProduction {
     pub exploitation_id: Uuid,
     pub mois: NaiveDate,
+    pub nom: String,
     pub quantite_produite: Decimal,
+    pub quantite_vendue: Option<Decimal>,
     pub unite: String,
     pub prix_unitaire_vente: Option<Decimal>,
 }
