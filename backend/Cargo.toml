@@ -31,6 +31,10 @@ tracing-actix-web = "0.7"
 # Auth
 jsonwebtoken = { version = "10.4", default-features = false, features = ["use_pem", "rust_crypto"] }
 bcrypt = "0.19"
+# OAuth: PKCE (S256) verification, refresh token hashing, redirect building
+sha2 = "0.10"
+base64 = "0.22"
+urlencoding = "2.1"
 
 # Utilities
 uuid = { version = "1.23", features = ["serde", "v4"] }

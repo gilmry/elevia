@@ -78,6 +78,46 @@ variables d'environnement `ADMIN_EMAIL` / `ADMIN_PASSWORD` (voir
 avec ce compte, créer les comptes des exploitations via le backoffice admin
 (`POST /admin/exploitations`) plutôt que de réutiliser ces identifiants.
 
+## Connecter Claude (MCP)
+
+Le backend expose `POST /mcp`, un serveur [MCP](https://modelcontextprotocol.io/)
+(JSON-RPC 2.0, transport "Streamable HTTP") permettant à un admin ou une
+exploitation de brancher Claude directement sur son compte Elevia, en tant
+que connecteur distant.
+
+Deux façons de s'authentifier :
+
+- **OAuth 2.1 + PKCE (recommandé)** : le backend fait aussi office de
+  serveur d'autorisation auto-hébergé (`/.well-known/oauth-authorization-server`,
+  `/oauth/register`, `/oauth/authorize`, `/oauth/token`). Claude s'enregistre
+  et se reconnecte tout seul, l'utilisateur voit juste un écran de connexion
+  (email/mot de passe) puis reste connecté indéfiniment : l'access token
+  (1h) se renouvelle automatiquement via le refresh token (30 jours,
+  révoqué et remplacé à chaque usage). Aucune configuration manuelle
+  requise côté client au-delà de coller l'URL `/mcp`.
+- **Bearer JWT direct** : coller le jeton obtenu via `POST /auth/login`
+  dans l'en-tête `Authorization`. Plus simple pour un script ou un test,
+  mais le jeton expire au bout de 12h sans possibilité de renouvellement -
+  à réserver à un usage ponctuel.
+
+Les deux méthodes produisent le même type de jeton (mêmes claims JWT), donc
+`/mcp` et le reste de l'API REST ne font aucune différence entre les deux.
+
+Outils disponibles, selon le rôle du compte :
+
+| Outil | Admin | Exploitation |
+|---|---|---|
+| `list_products` | oui | oui |
+| `get_coop_dashboard` | oui | oui |
+| `list_my_entries` | - | oui (ses propres coûts) |
+| `get_my_dashboard` | - | oui (son propre dashboard) |
+| `list_exploitations` | oui | - |
+
+Lecture seule pour l'instant : aucun outil ne modifie de données. La liste
+retournée par `tools/list` est déjà filtrée par rôle ; `tools/call`
+revérifie la même règle côté serveur (défense en profondeur, comme pour
+les endpoints REST équivalents).
+
 ## Tests end-to-end
 
 Les parcours utilisateurs (admin comme exploitation) sont couverts par une
@@ -98,8 +138,8 @@ Le profil `prod` ajoute [Traefik](https://traefik.io/) devant `backend`
 et `frontend`, avec TLS automatique via Let's Encrypt (challenge HTTP) pour
 deux sous-domaines :
 
-- `DOMAIN` (par défaut `elevia.ecosolva.com`) → frontend (PWA)
-- `API_DOMAIN` (par défaut `api.elevia.ecosolva.com`) → backend (API)
+- `DOMAIN` (par défaut `elevia.ecosolva.org`) → frontend (PWA)
+- `API_DOMAIN` (par défaut `api.elevia.ecosolva.org`) → backend (API)
 
 Étapes sur le serveur cible :
 

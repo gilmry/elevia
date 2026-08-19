@@ -92,6 +92,10 @@ services:
       # no public endpoint to create one otherwise.
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@elevia.local}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me-immediately}
+      # Used as the OAuth issuer/endpoint URLs in /.well-known/oauth-authorization-server -
+      # without it the backend falls back to deriving its own public URL from
+      # X-Forwarded-* request headers, which Traefik doesn't fully set.
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.org}
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,7 +103,7 @@ services:
       - elevia-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.elevia-backend.rule=Host(`${API_DOMAIN:-api.elevia.ecosolva.com}`)"
+      - "traefik.http.routers.elevia-backend.rule=Host(`${API_DOMAIN:-api.elevia.ecosolva.org}`)"
       - "traefik.http.routers.elevia-backend.entrypoints=websecure"
       - "traefik.http.routers.elevia-backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.elevia-backend.loadbalancer.server.port=8080"
@@ -138,7 +142,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.com}
+        PUBLIC_API_URL: ${PUBLIC_API_URL:-https://api.elevia.ecosolva.org}
     container_name: elevia-frontend
     restart: unless-stopped
     profiles: ["prod"]
@@ -148,7 +152,7 @@ services:
       - elevia-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.elevia-frontend.rule=Host(`${DOMAIN:-elevia.ecosolva.com}`)"
+      - "traefik.http.routers.elevia-frontend.rule=Host(`${DOMAIN:-elevia.ecosolva.org}`)"
       - "traefik.http.routers.elevia-frontend.entrypoints=websecure"
       - "traefik.http.routers.elevia-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.elevia-frontend.loadbalancer.server.port=80"
