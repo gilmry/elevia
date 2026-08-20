@@ -1,8 +1,41 @@
 <script lang="ts">
   import { onMount, onDestroy } from "svelte";
-  import Chart from "chart.js/auto";
+  // chart.js/auto registers every controller/scale/plugin Chart.js ships
+  // (radar, bubble, scatter, filler, decimation...) - none of which this
+  // dashboard uses. Registering only line/bar/pie + what they need cuts
+  // the bundle roughly in half.
+  import {
+    Chart,
+    LineController,
+    BarController,
+    PieController,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    ArcElement,
+    Title,
+    Legend,
+    Tooltip,
+  } from "chart.js";
   import { CURRENCY_SYMBOL } from "../lib/format";
   import type { ExploitationDashboard } from "../lib/types";
+
+  Chart.register(
+    LineController,
+    BarController,
+    PieController,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    ArcElement,
+    Title,
+    Legend,
+    Tooltip,
+  );
 
   export let dashboard: ExploitationDashboard;
 
