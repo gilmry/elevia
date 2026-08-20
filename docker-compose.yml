@@ -116,7 +116,13 @@ services:
       - "traefik.http.routers.elevia-backend-login.entrypoints=websecure"
       - "traefik.http.routers.elevia-backend-login.tls.certresolver=letsencrypt"
       - "traefik.http.routers.elevia-backend-login.service=elevia-backend"
-      - "traefik.http.routers.elevia-backend-login.priority=10"
+      # No explicit priority: Traefik ranks routers by matcher length when
+      # priority isn't set, and this rule is already longer/more specific
+      # than the catch-all elevia-backend router, so it wins on its own.
+      # An earlier explicit "priority=10" here was *lower* than the
+      # catch-all's auto-computed priority, so the catch-all matched first
+      # and silently bypassed the rate limit for every request - verified
+      # live in prod (15 rapid /auth/login calls, zero 429s).
       - "traefik.http.routers.elevia-backend-login.middlewares=elevia-login-ratelimit"
       - "traefik.http.middlewares.elevia-login-ratelimit.ratelimit.average=5"
       - "traefik.http.middlewares.elevia-login-ratelimit.ratelimit.period=1m"
