@@ -107,6 +107,20 @@ services:
       - "traefik.http.routers.elevia-backend.entrypoints=websecure"
       - "traefik.http.routers.elevia-backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.elevia-backend.loadbalancer.server.port=8080"
+      # /auth/login runs bcrypt (deliberately slow) on a 1-vCPU box: a load
+      # test found ~20 concurrent requests enough to push p95 latency past
+      # 5s for the whole service, not just this route. Rate-limited per
+      # source IP so a burst (attack or accidental) can't starve the single
+      # CPU core everything else shares.
+      - "traefik.http.routers.elevia-backend-login.rule=Host(`${API_DOMAIN:-api.elevia.ecosolva.org}`) && Path(`/auth/login`)"
+      - "traefik.http.routers.elevia-backend-login.entrypoints=websecure"
+      - "traefik.http.routers.elevia-backend-login.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.elevia-backend-login.service=elevia-backend"
+      - "traefik.http.routers.elevia-backend-login.priority=10"
+      - "traefik.http.routers.elevia-backend-login.middlewares=elevia-login-ratelimit"
+      - "traefik.http.middlewares.elevia-login-ratelimit.ratelimit.average=5"
+      - "traefik.http.middlewares.elevia-login-ratelimit.ratelimit.period=1m"
+      - "traefik.http.middlewares.elevia-login-ratelimit.ratelimit.burst=10"
 
   # --- Backend: dev mode with hot reload (cargo-watch), direct port, no Traefik ---
   backend-dev:
