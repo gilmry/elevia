@@ -7,9 +7,15 @@ use crate::infrastructure::web::handlers::responses::{bad_request, internal_erro
 use crate::infrastructure::web::middleware::AuthenticatedUser;
 
 pub async fn login(state: web::Data<AppState>, dto: web::Json<LoginRequest>) -> HttpResponse {
+    let email = dto.email.clone();
     match state.auth_use_cases.login(dto.into_inner()).await {
         Ok(response) => HttpResponse::Ok().json(response),
-        Err(AuthError::InvalidCredentials) => unauthorized("invalid email or password"),
+        Err(AuthError::InvalidCredentials) => {
+            // Never logged before: a brute-force against /auth/login left zero
+            // trace. Email only - never the attempted password.
+            tracing::warn!(%email, "login failed: invalid credentials");
+            unauthorized("invalid email or password")
+        }
         Err(err) => {
             tracing::error!(?err, "login failed");
             internal_error()
