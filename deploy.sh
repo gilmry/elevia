@@ -57,6 +57,11 @@ run_deploy() {
     log "déploiement réussi ($remote_rev)"
     echo "$remote_rev" > "$DEPLOYED_REV_FILE"
     docker image prune -f >> "$LOG_FILE" 2>&1
+    # `docker image prune` seul ne touche pas le cache de build (couches
+    # intermédiaires), qui grossit sans limite à chaque build sur cette
+    # machine à faible disque - jusqu'à 13+ Go observés. On garde 24h de
+    # cache (utile pour les builds répétés le même jour) et on purge le reste.
+    docker builder prune -f --filter "until=24h" >> "$LOG_FILE" 2>&1
   else
     log "échec du déploiement ($remote_rev), voir logs ci-dessus - nouvelle tentative au prochain tick"
     exit 1
